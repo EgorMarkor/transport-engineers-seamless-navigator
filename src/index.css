@@ -1,0 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+    @apply antialiased bg-white text-gray-800 dark:bg-dark-primary dark:text-dark-text-primary;
+}
