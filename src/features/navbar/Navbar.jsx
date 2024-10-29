@@ -10,13 +10,13 @@ const Navbar = () => {
   }
 
   return (
-    <nav className="flex justify-between mt-4">
+    <nav className="flex justify-between py-[2.5vh]">
       <div>
-        <Link to="/" className="text-2xl ml-4">Главная</Link>
+        <Link to="/" className="text-[3vh] ml-20">Главная</Link>
       </div>
 
       <div>
-        <ProfileButton className="mr-20 text-2xl"/>
+        <ProfileButton className="text-[3vh] mr-20"/>
       </div>
     </nav>
   );
