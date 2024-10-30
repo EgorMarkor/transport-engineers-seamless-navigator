@@ -17,9 +17,19 @@ const EditorCanvas = () => {
         WHEEL_SCALE_RATIO: 1.1,
       },
       currentState: {
-        cursorPosition: null,
-        cursorPositionSnapped: null,
         tool: null,
+        input: {
+          cursorPosition: null,
+          cursorPositionSnapped: null,
+          isPanning: false,
+        },
+        geometry: {
+          offset: {x: 0, y: 0},
+          scale: 1,
+        },
+        newObjects: {
+          newWall: null,
+        },
       },
       eventListeners: {
         onClick: [],
@@ -30,21 +40,49 @@ const EditorCanvas = () => {
     });
   }, []);
 
-  const onMouseMove = event => {
+  const onMouseMove = event => setEditorData(prev => {
+    const newEditorData = {...prev};
+
     const mousePosition = event.target.getStage().getPointerPosition();
-
     const position = {x: mousePosition.x, y: mousePosition.y};
-    const snappedPosition = snapToGrid(position.x, position.y, editorData.constants.GRID_SIZE);
 
-    setEditorData(prev => {
-      const newEditorData = {...prev};
+    if (newEditorData.currentState.input.isPanning) {
+      const dx = position.x - prev.currentState.input.cursorPosition.x;
+      const dy = position.y - prev.currentState.input.cursorPosition.y;
 
-      newEditorData.currentState.cursorPosition = position;
-      newEditorData.currentState.cursorPositionSnapped = snappedPosition;
+      newEditorData.currentState.geometry.offset = {
+        x: prev.currentState.geometry.offset.x + dx,
+        y: prev.currentState.geometry.offset.y + dy,
+      };
+    }
 
-      return newEditorData;
-    });
-  };
+    const snappedPosition = snapToGrid(
+      position.x, position.y,
+      newEditorData.constants.GRID_SIZE,
+      newEditorData.currentState.geometry.offset
+    );
+
+    newEditorData.currentState.input.cursorPosition = position;
+    newEditorData.currentState.input.cursorPositionSnapped = snappedPosition;
+
+    return newEditorData;
+  });
+
+  const onMouseDown = event => setEditorData(prev => {
+    const newEditorData = {...prev};
+    if (event.evt.button === 1) {
+      newEditorData.currentState.input.isPanning = true;
+    }
+    return newEditorData;
+  });
+
+  const onMouseUp = event => setEditorData(prev => {
+    const newEditorData = {...prev};
+    if (event.evt.button === 1) {
+      newEditorData.currentState.input.isPanning = false;
+    }
+    return newEditorData;
+  });
 
   if (!editorData) {
     return <></>;
@@ -54,7 +92,10 @@ const EditorCanvas = () => {
     <Stage
       width={editorData.constants.CANVAS_WIDTH}
       height={editorData.constants.CANVAS_HEIGHT}
+      onContextMenu={event => event.evt.preventDefault()}
       onMouseMove={onMouseMove}
+      onMouseDown={onMouseDown}
+      onMouseUp={onMouseUp}
       onClick={event => editorData.eventListeners.onClick.forEach(callback => callback(event))}
     >
       <BackgroundLayer/>

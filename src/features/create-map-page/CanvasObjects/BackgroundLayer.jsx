@@ -4,27 +4,28 @@ import {useEditorData} from "shared/hooks/useEditorData";
 const BackgroundLayer = () => {
   const {editorData} = useEditorData();
   const {CANVAS_HEIGHT, CANVAS_WIDTH, GRID_SIZE} = editorData.constants;
+  const {offset} = editorData.currentState.geometry;
 
   const lines = [];
 
-  // Горизонтальные линии
-  for (let i = 0; i < CANVAS_HEIGHT / GRID_SIZE; i++) {
+  // Horizontal lines
+  for (let y = offset.y % GRID_SIZE; y <= CANVAS_HEIGHT; y += GRID_SIZE) {
     lines.push(
       <Line
-        key={`horizontal-${i}`}
-        points={[0, i * GRID_SIZE, CANVAS_WIDTH, i * GRID_SIZE]}
+        key={`horizontal-${y}`}
+        points={[0, y, CANVAS_WIDTH, y]}
         stroke="#004D37"
         strokeWidth={2}
       />
     );
   }
 
-  // Вертикальные линии
-  for (let i = 0; i < CANVAS_WIDTH / GRID_SIZE; i++) {
+  // Vertical lines
+  for (let x = offset.x % GRID_SIZE; x <= CANVAS_WIDTH; x += GRID_SIZE) {
     lines.push(
       <Line
-        key={`vertical-${i}`}
-        points={[i * GRID_SIZE, 0, i * GRID_SIZE, CANVAS_HEIGHT]}
+        key={`vertical-${x}`}
+        points={[x, 0, x, CANVAS_HEIGHT]}
         stroke="#004D37"
         strokeWidth={2}
       />
@@ -33,11 +34,7 @@ const BackgroundLayer = () => {
 
   return (
     <Layer>
-      <Rect
-        width={CANVAS_WIDTH}
-        height={CANVAS_HEIGHT}
-        fill="#2F302D"
-      />
+      <Rect width={CANVAS_WIDTH} height={CANVAS_HEIGHT} fill="#2F302D"/>
       {lines}
     </Layer>
   );

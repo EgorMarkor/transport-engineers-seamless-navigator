@@ -1,11 +1,11 @@
 import Api from "api";
 import {useEditorData} from "shared/hooks/useEditorData";
-import generateGeoJSON from "./CanvasObjects/generateGeoJSON";
+import generateGeoJSON from "./generateGeoJSON";
 import {useNavigate} from "react-router-dom";
 
 const Toolbar = () => {
   const {editorData, setEditorData} = useEditorData();
-  const navgiate = useNavigate();
+  const navigate = useNavigate();
 
   const changeTool = tool => setEditorData(prev => {
     const newEditorData = {...prev};
@@ -21,7 +21,7 @@ const Toolbar = () => {
     const mapJSON = generateGeoJSON(editorData.objects, editorData.constants.GRID_SIZE);
 
     Api.post("/map", mapJSON)
-      .then(response => navgiate("/success"))
+      .then(response => navigate("/success"))
       .catch(error => console.error(error));
   };
 

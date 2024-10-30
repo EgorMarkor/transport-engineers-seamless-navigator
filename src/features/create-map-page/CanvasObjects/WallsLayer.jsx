@@ -1,69 +1,74 @@
-import {useEffect, useRef, useState} from "react";
+import {useEffect} from "react";
 import {Circle, Layer, Line} from "react-konva";
 import {useEditorData} from "shared/hooks/useEditorData";
 
 const WallsLayer = () => {
   const {editorData, setEditorData} = useEditorData();
-  const {tool, cursorPosition, cursorPositionSnapped} = editorData.currentState;
-
-  const [newWall, setNewWall] = useState(null);
-  const newWallRef = useRef(null);
-  newWallRef.current = newWall;
+  const {tool, input, geometry, newObjects} = editorData.currentState;
 
   const onClicked = event => {
     if (editorData.currentState.tool !== "wall") {
       return;
     }
 
-    if (newWallRef.current === null) {
-      setNewWall({
-        x1: editorData.currentState.cursorPositionSnapped.x,
-        y1: editorData.currentState.cursorPositionSnapped.y
-      });
-    } else {
-      const x1 = newWallRef.current.x1;
-      const y1 = newWallRef.current.y1;
+    if (event.evt.button !== 0) {
+      return;
+    }
 
-      setEditorData(prev => {
-        const newEditorData = {...prev};
+    setEditorData(prev => {
+      const newEditorData = {...prev};
 
+      const {x: newX, y: newY} = newEditorData.currentState.input.cursorPositionSnapped;
+
+      if (!newEditorData.currentState.newObjects.newWall) {
+        newEditorData.currentState.newObjects.newWall = {
+          x1: newX,
+          y1: newY,
+        }
+      } else {
         newEditorData.objects.walls.push({
-          x1: x1,
-          y1: y1,
-          x2: editorData.currentState.cursorPositionSnapped.x,
-          y2: editorData.currentState.cursorPositionSnapped.y,
+          x1: editorData.currentState.newObjects.newWall.x1,
+          y1: editorData.currentState.newObjects.newWall.y1,
+          x2: newX,
+          y2: newY,
         });
 
-        return newEditorData;
-      });
-      setNewWall(null);
-    }
+        newEditorData.currentState.newObjects.newWall = null;
+      }
+
+      return newEditorData;
+    });
   };
 
   useEffect(() => {
     setEditorData(prev => {
       const newEditorData = {...prev};
 
-      newEditorData.eventListeners.onClick = [...newEditorData.eventListeners.onClick, onClicked];
+      newEditorData.eventListeners.onClick.push(onClicked);
 
       return newEditorData;
     });
   }, []);
 
   return (
-    <Layer>
-      {tool === "wall" && cursorPosition && (
+    <Layer x={geometry.offset.x} y={geometry.offset.y}>
+      {tool === "wall" && input.cursorPosition && (
         <Circle
-          x={cursorPositionSnapped.x}
-          y={cursorPositionSnapped.y}
+          x={input.cursorPositionSnapped.x}
+          y={input.cursorPositionSnapped.y}
           radius={10}
           fill="#FF7827"
         />
       )}
-      {tool === "wall" && cursorPosition && newWall !== null && (
+      {tool === "wall" && input.cursorPosition && newObjects.newWall !== null && (
         <Line
           key={`wall-${0}`}
-          points={[newWall.x1, newWall.y1, cursorPositionSnapped.x, cursorPositionSnapped.y]}
+          points={[
+            newObjects.newWall.x1,
+            newObjects.newWall.y1,
+            input.cursorPositionSnapped.x,
+            input.cursorPositionSnapped.y
+          ]}
           stroke="#FF7827"
           strokeWidth={3}
         />
