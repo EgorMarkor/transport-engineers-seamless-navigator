@@ -1,4 +1,6 @@
-const generateGeoJSON = (objects, gridSize) => {
+const generateGeoJSON = (objects, gridSize, scale) => {
+  const scaledGridSize = gridSize * scale;
+
   const output = {
     "type": "FeatureCollection",
     "features": [],
@@ -13,8 +15,8 @@ const generateGeoJSON = (objects, gridSize) => {
       "geometry": {
         "type": "LineString",
         "coordinates": [
-          [wall.x1 / gridSize, wall.y1 / gridSize],
-          [wall.x2 / gridSize, wall.y2 / gridSize],
+          [wall.x1 / scaledGridSize, wall.y1 / scaledGridSize],
+          [wall.x2 / scaledGridSize, wall.y2 / scaledGridSize],
         ],
       },
     };

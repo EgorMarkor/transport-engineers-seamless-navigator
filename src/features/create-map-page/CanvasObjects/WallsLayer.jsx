@@ -18,7 +18,9 @@ const WallsLayer = () => {
     setEditorData(prev => {
       const newEditorData = {...prev};
 
-      const {x: newX, y: newY} = newEditorData.currentState.input.cursorPositionSnapped;
+      const {x, y} = newEditorData.currentState.input.cursorPositionSnapped;
+      const newX = x / newEditorData.currentState.geometry.scale;
+      const newY = y / newEditorData.currentState.geometry.scale;
 
       if (!newEditorData.currentState.newObjects.newWall) {
         newEditorData.currentState.newObjects.newWall = {
@@ -66,11 +68,13 @@ const WallsLayer = () => {
           points={[
             newObjects.newWall.x1,
             newObjects.newWall.y1,
-            input.cursorPositionSnapped.x,
-            input.cursorPositionSnapped.y
+            input.cursorPositionSnapped.x / geometry.scale,
+            input.cursorPositionSnapped.y / geometry.scale,
           ]}
           stroke="#FF7827"
           strokeWidth={3}
+          scaleX={geometry.scale}
+          scaleY={geometry.scale}
         />
       )}
       {editorData.objects.walls.map((wall, index) => (
@@ -79,6 +83,8 @@ const WallsLayer = () => {
           points={[wall.x1, wall.y1, wall.x2, wall.y2]}
           stroke="#FF7827"
           strokeWidth={3}
+          scaleX={geometry.scale}
+          scaleY={geometry.scale}
         />
       ))}
     </Layer>

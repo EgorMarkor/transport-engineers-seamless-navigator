@@ -59,7 +59,8 @@ const EditorCanvas = () => {
     const snappedPosition = snapToGrid(
       position.x, position.y,
       newEditorData.constants.GRID_SIZE,
-      newEditorData.currentState.geometry.offset
+      newEditorData.currentState.geometry.offset,
+      newEditorData.currentState.geometry.scale,
     );
 
     newEditorData.currentState.input.cursorPosition = position;
@@ -84,6 +85,23 @@ const EditorCanvas = () => {
     return newEditorData;
   });
 
+  const onWheel = event => setEditorData(prev => {
+    const newEditorData = {...prev};
+    const oldScale = prev.currentState.geometry.scale;
+    const WHEEL_SCALE_RATIO = prev.constants.WHEEL_SCALE_RATIO;
+
+    let newScale;
+    if (event.evt.deltaY > 0) {
+      newScale = oldScale / WHEEL_SCALE_RATIO;
+    } else {
+      newScale = oldScale * WHEEL_SCALE_RATIO;
+    }
+
+    newEditorData.currentState.geometry.scale = Math.max(0.5, Math.min(3, newScale));
+
+    return newEditorData;
+  });
+
   if (!editorData) {
     return <></>;
   }
@@ -96,6 +114,7 @@ const EditorCanvas = () => {
       onMouseMove={onMouseMove}
       onMouseDown={onMouseDown}
       onMouseUp={onMouseUp}
+      onWheel={onWheel}
       onClick={event => editorData.eventListeners.onClick.forEach(callback => callback(event))}
     >
       <BackgroundLayer/>

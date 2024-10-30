@@ -18,7 +18,11 @@ const Toolbar = () => {
   const saveMap = event => {
     event.preventDefault();
 
-    const mapJSON = generateGeoJSON(editorData.objects, editorData.constants.GRID_SIZE);
+    const mapJSON = generateGeoJSON(
+      editorData.objects,
+      editorData.constants.GRID_SIZE,
+      editorData.currentState.geometry.scale,
+    );
 
     Api.post("/map", mapJSON)
       .then(response => navigate("/success"))
