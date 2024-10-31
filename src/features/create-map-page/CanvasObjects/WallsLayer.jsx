@@ -6,51 +6,34 @@ const WallsLayer = () => {
   const {editorData, setEditorData} = useEditorData();
   const {tool, input, geometry, newObjects} = editorData.currentState;
 
-  const onClicked = event => {
-    if (editorData.currentState.tool !== "wall") {
-      return;
+  const onClicked = event => setEditorData(prev => {
+    const newEditorData = {...prev};
+
+    if (newEditorData.currentState.tool !== "wall" || event.evt.button !== 0) {
+      return newEditorData;
     }
 
-    if (event.evt.button !== 0) {
-      return;
+    const newWall = newEditorData.currentState.newObjects.newWall;
+
+    const {x, y} = newEditorData.currentState.input.cursorPositionSnapped;
+    const newX = x / newEditorData.currentState.geometry.scale;   // Черная магия какая то
+    const newY = y / newEditorData.currentState.geometry.scale;   // Вот почему разделить то блин???
+
+    if (!newWall) {
+      newEditorData.currentState.newObjects.newWall = {x1: newX, y1: newY};
+    } else {
+      newEditorData.objects.walls.push({x1: newWall.x1, y1: newWall.y1, x2: newX, y2: newY});
+      newEditorData.currentState.newObjects.newWall = null;
     }
 
-    setEditorData(prev => {
-      const newEditorData = {...prev};
+    return newEditorData;
+  });
 
-      const {x, y} = newEditorData.currentState.input.cursorPositionSnapped;
-      const newX = x / newEditorData.currentState.geometry.scale;
-      const newY = y / newEditorData.currentState.geometry.scale;
-
-      if (!newEditorData.currentState.newObjects.newWall) {
-        newEditorData.currentState.newObjects.newWall = {
-          x1: newX,
-          y1: newY,
-        }
-      } else {
-        newEditorData.objects.walls.push({
-          x1: editorData.currentState.newObjects.newWall.x1,
-          y1: editorData.currentState.newObjects.newWall.y1,
-          x2: newX,
-          y2: newY,
-        });
-
-        newEditorData.currentState.newObjects.newWall = null;
-      }
-
-      return newEditorData;
-    });
-  };
-
-  useEffect(() => {
-    setEditorData(prev => {
-      const newEditorData = {...prev};
-
-      newEditorData.eventListeners.onClick.push(onClicked);
-
-      return newEditorData;
-    });
-  }, []);
+  useEffect(() => setEditorData(prev => {
+    const newEditorData = {...prev};
+    newEditorData.eventListeners.onClick.push(onClicked);
+    return newEditorData;
+  }), []);
 
   return (
     <Layer x={geometry.offset.x} y={geometry.offset.y}>

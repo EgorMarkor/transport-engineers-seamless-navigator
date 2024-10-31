@@ -3,7 +3,6 @@ import {Stage} from "react-konva";
 import {useEditorData} from "shared/hooks/useEditorData";
 import BackgroundLayer from "./CanvasObjects/BackgroundLayer";
 import WallsLayer from "./CanvasObjects/WallsLayer";
-import {snapToGrid} from "./editorUtils";
 
 const EditorCanvas = () => {
   const {editorData, setEditorData} = useEditorData();
@@ -13,7 +12,7 @@ const EditorCanvas = () => {
       constants: {
         CANVAS_WIDTH: window.innerWidth * 0.8,
         CANVAS_HEIGHT: window.innerHeight * 0.905,
-        GRID_SIZE: window.innerWidth * 0.05,
+        INITIAL_GRID_SIZE: window.innerWidth * 0.05,
         WHEEL_SCALE_RATIO: 1.1,
       },
       currentState: {
@@ -26,6 +25,7 @@ const EditorCanvas = () => {
         geometry: {
           offset: {x: 0, y: 0},
           scale: 1,
+          scaledGridSize: window.innerWidth * 0.05,
         },
         newObjects: {
           newWall: null,
@@ -43,27 +43,26 @@ const EditorCanvas = () => {
   const onMouseMove = event => setEditorData(prev => {
     const newEditorData = {...prev};
 
-    const mousePosition = event.target.getStage().getPointerPosition();
-    const position = {x: mousePosition.x, y: mousePosition.y};
+    const {cursorPosition: prevCursorPosition, isPanning} = newEditorData.currentState.input;
+    const {offset, scaledGridSize} = newEditorData.currentState.geometry;
 
-    if (newEditorData.currentState.input.isPanning) {
-      const dx = position.x - prev.currentState.input.cursorPosition.x;
-      const dy = position.y - prev.currentState.input.cursorPosition.y;
+    const cursorPosition = event.target.getStage().getPointerPosition();
+
+    if (isPanning) {
+      const dx = cursorPosition.x - prevCursorPosition.x;
+      const dy = cursorPosition.y - prevCursorPosition.y;
 
       newEditorData.currentState.geometry.offset = {
-        x: prev.currentState.geometry.offset.x + dx,
-        y: prev.currentState.geometry.offset.y + dy,
+        x: offset.x + dx,
+        y: offset.y + dy,
       };
     }
 
-    const snappedPosition = snapToGrid(
-      position.x, position.y,
-      newEditorData.constants.GRID_SIZE,
-      newEditorData.currentState.geometry.offset,
-      newEditorData.currentState.geometry.scale,
-    );
+    const snappedX = Math.round((cursorPosition.x - offset.x) / scaledGridSize) * scaledGridSize;
+    const snappedY = Math.round((cursorPosition.y - offset.y) / scaledGridSize) * scaledGridSize;
+    const snappedPosition = {x: snappedX, y: snappedY};
 
-    newEditorData.currentState.input.cursorPosition = position;
+    newEditorData.currentState.input.cursorPosition = cursorPosition;
     newEditorData.currentState.input.cursorPositionSnapped = snappedPosition;
 
     return newEditorData;
@@ -87,17 +86,18 @@ const EditorCanvas = () => {
 
   const onWheel = event => setEditorData(prev => {
     const newEditorData = {...prev};
-    const oldScale = prev.currentState.geometry.scale;
-    const WHEEL_SCALE_RATIO = prev.constants.WHEEL_SCALE_RATIO;
 
-    let newScale;
-    if (event.evt.deltaY > 0) {
-      newScale = oldScale / WHEEL_SCALE_RATIO;
-    } else {
-      newScale = oldScale * WHEEL_SCALE_RATIO;
-    }
+    const oldScale = newEditorData.currentState.geometry.scale;
+    const WHEEL_SCALE_RATIO = newEditorData.constants.WHEEL_SCALE_RATIO;
+    const INITIAL_GRID_SIZE = newEditorData.constants.INITIAL_GRID_SIZE;
 
-    newEditorData.currentState.geometry.scale = Math.max(0.5, Math.min(3, newScale));
+    const newScale = event.evt.deltaY > 0 ?
+      oldScale / WHEEL_SCALE_RATIO :
+      oldScale * WHEEL_SCALE_RATIO;
+    const newClampedScale = Math.max(0.25, Math.min(3, newScale));
+
+    newEditorData.currentState.geometry.scale = newClampedScale;
+    newEditorData.currentState.geometry.scaledGridSize = INITIAL_GRID_SIZE * newClampedScale;
 
     return newEditorData;
   });

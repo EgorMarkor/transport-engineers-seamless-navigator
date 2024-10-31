@@ -3,14 +3,14 @@ import {useEditorData} from "shared/hooks/useEditorData";
 
 const BackgroundLayer = () => {
   const {editorData} = useEditorData();
-  const {CANVAS_HEIGHT, CANVAS_WIDTH, GRID_SIZE} = editorData.constants;
-  const {offset, scale} = editorData.currentState.geometry;
-  const SCALED_GRID_SIZE = GRID_SIZE * scale;
+
+  const {CANVAS_HEIGHT, CANVAS_WIDTH} = editorData.constants;
+  const {offset, scaledGridSize} = editorData.currentState.geometry;
 
   const lines = [];
 
   // Horizontal lines
-  for (let y = offset.y % SCALED_GRID_SIZE; y <= CANVAS_HEIGHT; y += SCALED_GRID_SIZE) {
+  for (let y = offset.y % scaledGridSize; y <= CANVAS_HEIGHT; y += scaledGridSize) {
     lines.push(
       <Line
         key={`horizontal-${y}`}
@@ -22,7 +22,7 @@ const BackgroundLayer = () => {
   }
 
   // Vertical lines
-  for (let x = offset.x % SCALED_GRID_SIZE; x <= CANVAS_WIDTH; x += SCALED_GRID_SIZE) {
+  for (let x = offset.x % scaledGridSize; x <= CANVAS_WIDTH; x += scaledGridSize) {
     lines.push(
       <Line
         key={`vertical-${x}`}

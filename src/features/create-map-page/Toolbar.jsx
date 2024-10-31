@@ -1,7 +1,7 @@
+import {useNavigate} from "react-router-dom";
 import Api from "api";
 import {useEditorData} from "shared/hooks/useEditorData";
 import generateGeoJSON from "./generateGeoJSON";
-import {useNavigate} from "react-router-dom";
 
 const Toolbar = () => {
   const {editorData, setEditorData} = useEditorData();
@@ -9,9 +9,7 @@ const Toolbar = () => {
 
   const changeTool = tool => setEditorData(prev => {
     const newEditorData = {...prev};
-
     newEditorData.currentState.tool = tool;
-
     return newEditorData;
   });
 
@@ -20,8 +18,7 @@ const Toolbar = () => {
 
     const mapJSON = generateGeoJSON(
       editorData.objects,
-      editorData.constants.GRID_SIZE,
-      editorData.currentState.geometry.scale,
+      editorData.currentState.geometry.scaledGridSize,
     );
 
     Api.post("/map", mapJSON)

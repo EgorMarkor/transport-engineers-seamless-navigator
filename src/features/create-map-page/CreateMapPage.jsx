@@ -1,7 +1,7 @@
+import {EditorDataProvider} from "shared/hooks/useEditorData";
 import NoZoomWarning from "./NoZoomWarning";
 import Toolbar from "./Toolbar";
 import EditorCanvas from "./EditorCanvas";
-import {EditorDataProvider} from "shared/hooks/useEditorData";
 
 const CreateMapPage = () => {
   return (

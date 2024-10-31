@@ -1,6 +1,4 @@
-const generateGeoJSON = (objects, gridSize, scale) => {
-  const scaledGridSize = gridSize * scale;
-
+const generateGeoJSON = (objects, scaledGridSize) => {
   const output = {
     "type": "FeatureCollection",
     "features": [],
