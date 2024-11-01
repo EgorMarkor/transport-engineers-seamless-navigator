@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"github.com/EgorMarkor/transport-engineers-seamless-navigator/domain"
 	"github.com/EgorMarkor/transport-engineers-seamless-navigator/internal/models"
 	"github.com/EgorMarkor/transport-engineers-seamless-navigator/internal/repository"
 	"time"
@@ -22,11 +23,17 @@ func NewMapService(repo *repository.MapRepository, timeout time.Duration) *MapSe
 func (ms *MapService) Create(c context.Context, newMap models.GeoJSON) error {
 	ctx, cancel := context.WithTimeout(c, ms.ContextTimeout)
 	defer cancel()
+
+	_, err := ms.MapRepository.GetMapByBluetoothID(ctx, newMap.Properties.BluetoothID)
+	if err == nil {
+		return domain.ErrMapAlreadyExist
+	}
+
 	return ms.MapRepository.Create(ctx, newMap)
 }
 
-func (ms *MapService) Get(c context.Context) (models.GeoJSON, error) {
+func (ms *MapService) GetMapByBluetoothID(c context.Context, ID string) (models.GeoJSON, error) {
 	ctx, cancel := context.WithTimeout(c, ms.ContextTimeout)
 	defer cancel()
-	return ms.MapRepository.GetMap(ctx)
+	return ms.MapRepository.GetMapByBluetoothID(ctx, ID)
 }

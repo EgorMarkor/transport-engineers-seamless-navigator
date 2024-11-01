@@ -1,13 +1,21 @@
 package models
 
-import "go.mongodb.org/mongo-driver/bson/primitive"
+import (
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
 
 const MapCollection = "maps"
 
 type GeoJSON struct {
-	ID       primitive.ObjectID `bson:"_id" json:"-"`
-	Type     string             `bson:"type" json:"type" binding:"required"`
-	Features []Feature          `bson:"features" json:"features" binding:"required,dive"`
+	ID         primitive.ObjectID   `bson:"_id" json:"-"`
+	Type       string               `bson:"type" json:"type" binding:"required"`
+	Properties FeatureSetProperties `bson:"properties" json:"properties" binding:"required"`
+	Features   []Feature            `bson:"features" json:"features" binding:"required,dive"`
+}
+
+type FeatureSetProperties struct {
+	CreatorID   string `bson:"creatorID" json:"-"`
+	BluetoothID string `bson:"bluetoothID" json:"bluetoothID" binding:"required"`
 }
 
 type Feature struct {

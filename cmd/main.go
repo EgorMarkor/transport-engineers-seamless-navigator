@@ -17,12 +17,15 @@ func main() {
 	db := app.Mongo.Database(env.DBName)
 	defer app.CloseDBConnection()
 
+	redis := app.Redis
+	defer app.CloseRedisClient()
+
 	timeout := time.Duration(env.ContextTimeout) * time.Second
 
 	ginInstance := gin.Default()
 	ginInstance.Use(middleware.CORSMiddleware())
 
-	route.Setup(env, timeout, db, ginInstance)
+	route.Setup(env, timeout, db, redis, ginInstance)
 
 	err := ginInstance.Run(env.ServerAddress)
 	if err != nil {
