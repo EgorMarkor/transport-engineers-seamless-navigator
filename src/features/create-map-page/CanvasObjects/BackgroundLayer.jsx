@@ -2,7 +2,7 @@ import {Layer, Line, Rect} from "react-konva";
 import {useEditorData} from "shared/hooks/useEditorData";
 
 const BackgroundLayer = () => {
-  const {editorData} = useEditorData();
+  const {editorData, setEditorData} = useEditorData();
 
   const {CANVAS_HEIGHT, CANVAS_WIDTH} = editorData.constants;
   const {offset, scaledGridSize} = editorData.currentState.geometry;
@@ -33,8 +33,16 @@ const BackgroundLayer = () => {
     );
   }
 
+  const onClick = event => setEditorData(prev => {
+    const newEditorData = {...prev};
+    if (newEditorData.currentState.tool === "select" && event.evt.button === 0) {
+      newEditorData.currentState.selectedObject = null;
+    }
+    return newEditorData;
+  });
+
   return (
-    <Layer>
+    <Layer onClick={onClick}>
       <Rect width={CANVAS_WIDTH} height={CANVAS_HEIGHT} fill="#2F302D"/>
       {lines}
     </Layer>

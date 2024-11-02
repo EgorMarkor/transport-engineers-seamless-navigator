@@ -3,42 +3,43 @@ import {Stage} from "react-konva";
 import {useEditorData} from "shared/hooks/useEditorData";
 import BackgroundLayer from "./CanvasObjects/BackgroundLayer";
 import WallsLayer from "./CanvasObjects/WallsLayer";
+import BeaconsLayer from "./CanvasObjects/BeaconsLayer";
 
 const EditorCanvas = () => {
   const {editorData, setEditorData} = useEditorData();
 
-  useEffect(() => {  // TODO: добавить массив предыдущих действий чтобы работал ctrl + Z
-    setEditorData({
-      constants: {
-        CANVAS_WIDTH: window.innerWidth * 0.8,
-        CANVAS_HEIGHT: window.innerHeight * 0.905,
-        INITIAL_GRID_SIZE: window.innerWidth * 0.05,
-        WHEEL_SCALE_RATIO: 1.1,
+  useEffect(() => setEditorData({  // TODO: добавить массив предыдущих действий чтобы работал ctrl + Z
+    constants: {
+      CANVAS_WIDTH: window.innerWidth * 0.7,
+      CANVAS_HEIGHT: window.innerHeight * 0.905,
+      INITIAL_GRID_SIZE: window.innerWidth * 0.03,
+      WHEEL_SCALE_RATIO: 1.1,
+    },
+    currentState: {
+      tool: "select",
+      input: {
+        cursorPosition: null,
+        cursorPositionSnapped: null,
+        isPanning: false,
       },
-      currentState: {
-        tool: null,
-        input: {
-          cursorPosition: null,
-          cursorPositionSnapped: null,
-          isPanning: false,
-        },
-        geometry: {
-          offset: {x: 0, y: 0},
-          scale: 1,
-          scaledGridSize: window.innerWidth * 0.05,
-        },
-        newObjects: {
-          newWall: null,
-        },
+      geometry: {
+        offset: {x: 0, y: 0},
+        scale: 1,
+        scaledGridSize: window.innerWidth * 0.03,
       },
-      eventListeners: {
-        onClick: [],
+      newObjects: {
+        newWall: null,
       },
-      objects: {
-        walls: [],
-      },
-    });
-  }, []);
+      selectedObject: null,
+    },
+    eventListeners: {
+      onClick: [],
+    },
+    objects: {
+      walls: [],
+      beacons: [],
+    },
+  }), []);
 
   const onMouseMove = event => setEditorData(prev => {
     const newEditorData = {...prev};
@@ -119,6 +120,7 @@ const EditorCanvas = () => {
     >
       <BackgroundLayer/>
       <WallsLayer/>
+      <BeaconsLayer/>
     </Stage>
   );
 };

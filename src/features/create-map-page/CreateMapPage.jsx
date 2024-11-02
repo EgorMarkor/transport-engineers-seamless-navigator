@@ -2,6 +2,7 @@ import {EditorDataProvider} from "shared/hooks/useEditorData";
 import NoZoomWarning from "./NoZoomWarning";
 import Toolbar from "./Toolbar";
 import EditorCanvas from "./EditorCanvas";
+import PropertiesList from "./PropertiesList";
 
 const CreateMapPage = () => {
   return (
@@ -10,6 +11,7 @@ const CreateMapPage = () => {
       <EditorDataProvider>
         <Toolbar/>
         <EditorCanvas/>
+        <PropertiesList/>
       </EditorDataProvider>
     </div>
   );

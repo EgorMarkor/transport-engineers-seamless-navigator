@@ -1,26 +1,33 @@
-const generateGeoJSON = (objects, scaledGridSize) => {
+const generateGeoJSON = objects => {
   const output = {
     "type": "FeatureCollection",
     "features": [],
   };
 
-  objects.walls.forEach(wall => {
-    const wallObject = {
-      "type": "Feature",
-      "properties": {
-        "objectType": "wall",
-      },
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [wall.x1 / scaledGridSize, wall.y1 / scaledGridSize],
-          [wall.x2 / scaledGridSize, wall.y2 / scaledGridSize],
-        ],
-      },
-    };
+  objects.walls.forEach(wall => output.features.push({
+    "type": "Feature",
+    "properties": {
+      "objectType": "wall",
+    },
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [wall.x1, wall.y1],
+        [wall.x2, wall.y2],
+      ],
+    },
+  }));
 
-    output.features.push(wallObject);
-  });
+  objects.beacons.forEach(beacon => output.features.push({
+    "type": "Feature",
+    "properties": {
+      "objectType": "beacon",
+    },
+    "geometry": {
+      "type": "Point",
+      "coordinates": [beacon.x, beacon.y],
+    },
+  }));
 
   return output;
 };
