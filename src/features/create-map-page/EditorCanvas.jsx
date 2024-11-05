@@ -4,6 +4,7 @@ import {useEditorData} from "shared/hooks/useEditorData";
 import BackgroundLayer from "./CanvasObjects/BackgroundLayer";
 import WallsLayer from "./CanvasObjects/WallsLayer";
 import BeaconsLayer from "./CanvasObjects/BeaconsLayer";
+import DoorsLevel from "./CanvasObjects/DoorsLevel";
 
 const EditorCanvas = () => {
   const {editorData, setEditorData} = useEditorData();
@@ -29,6 +30,7 @@ const EditorCanvas = () => {
       },
       newObjects: {
         newWall: null,
+        newDoor: null,
       },
       selectedObject: null,
     },
@@ -38,6 +40,7 @@ const EditorCanvas = () => {
     objects: {
       walls: [],
       beacons: [],
+      doors: [],
     },
   }), []);
 
@@ -121,6 +124,7 @@ const EditorCanvas = () => {
       <BackgroundLayer/>
       <WallsLayer/>
       <BeaconsLayer/>
+      <DoorsLevel/>
     </Stage>
   );
 };

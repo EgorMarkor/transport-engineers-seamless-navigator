@@ -15,8 +15,6 @@ export const selectObject = (objectType, index, tool, event, setEditorData) => s
   return newEditorData;
 });
 
-export const invertY = (y, canvasHeight) => canvasHeight - y;
-
 // Функция нужна чтобы убрать знаменитый jsовский прикол (0.1 + 0.2 === 0.300000000004)
 export const fixPrecisionError = number => {
   const epsilon = 0.001;
@@ -62,4 +60,68 @@ export const doWallsIntersect = (wall1, wall2) => {
   return false;
 };
 
+export const findClosestWallPoint = (walls, point, distanceThreshold) => {
+  const findDotProjectionOnWall = wall => {
+    // Находение проекции точки на линию используя dot product
+    // A---D-------------B
+    //     C
+
+    // Нахождение координат нужных векторов
+    const ABx = wall.x2 - wall.x1;
+    const ABy = wall.y2 - wall.y1;
+
+    const ACx = point.x - wall.x1;
+    const ACy = point.y - wall.y1;
+
+    // Нахождение координат точки D
+    const coefficient = (ABx * ACx + ABy * ACy) / (ABx * ABx + ABy * ABy);
+    let Dx = wall.x1 + ABx * coefficient;
+    let Dy = wall.y1 + ABy * coefficient;
+
+    // Нахождение координат A и B для проверки того, что D принадлежит AB
+    const Ax = Math.min(wall.x1, wall.x2);
+    const Ay = Math.min(wall.y1, wall.y2);
+    const Bx = Math.max(wall.x1, wall.x2);
+    const By = Math.max(wall.y1, wall.y2);
+
+    const withinX = (Dx >= Ax && Dx <= Bx);
+    const withinY = (Dy >= Ay && Dy <= By);
+
+    if (!withinX || !withinY) {
+      // Оставляем точку D на краю линии, если она выходит за AB
+      const distance1 = Math.sqrt(
+        Math.pow(Ax - Dx, 2) + Math.pow(Ay - Dy, 2)
+      );
+      const distance2 = Math.sqrt(
+        Math.pow(Bx - Dx, 2) + Math.pow(By - Dy, 2)
+      );
+
+      if (distance1 < distance2) {
+        return {x: Ax, y: Ay};
+      } else {
+        return {x: Bx, y: By};
+      }
+    }
+
+    return {x: Dx, y: Dy};
+  };
+
+  let closestPoint = null;
+  let minimalDistance = Infinity;
+
+  walls.forEach(wall => {
+    const projectedPoint = findDotProjectionOnWall(wall);
+
+    const distance = Math.sqrt(
+      Math.pow(projectedPoint.x - point.x, 2) + Math.pow(projectedPoint.y - point.y, 2)
+    );
+
+    if (distance < minimalDistance && distance < distanceThreshold) {
+      minimalDistance = distance;
+      closestPoint = projectedPoint;
+    }
+  });
+
+  return closestPoint;
+}
 

@@ -1,6 +1,7 @@
 import {useEditorData} from "shared/hooks/useEditorData";
 import WallProperties from "./ObjectsProperties/WallProperties";
 import BeaconProperties from "./ObjectsProperties/BeaconProperties";
+import DoorProperties from "./ObjectsProperties/DoorProperties";
 
 const PropertiesList = () => {
   const {editorData, setEditorData} = useEditorData();
@@ -10,19 +11,11 @@ const PropertiesList = () => {
     const newEditorData = {...prev};
     const {type, index} = newEditorData.currentState.selectedObject;
 
-    if (type === "wall") {
-      const walls = newEditorData.objects.walls;
-      newEditorData.objects.walls = [
-        ...walls.slice(0, index),
-        ...walls.slice(index + 1),
-      ];
-    } else if (type === "beacon") {
-      const beacons = newEditorData.objects.beacons;
-      newEditorData.objects.beacons = [
-        ...beacons.slice(0, index),
-        ...beacons.slice(index + 1),
-      ];
-    }
+    const objects = newEditorData.objects[`${type}s`];
+    newEditorData.objects[`${type}s`] = [
+      ...objects.slice(0, index),
+      ...objects.slice(index + 1),
+    ];
 
     newEditorData.currentState.selectedObject = null;
 
@@ -42,6 +35,7 @@ const PropertiesList = () => {
       <div className="w-full">
         {selectedObjectType === "wall" && <WallProperties/>}
         {selectedObjectType === "beacon" && <BeaconProperties/>}
+        {selectedObjectType === "door" && <DoorProperties/>}
       </div>
 
       <button

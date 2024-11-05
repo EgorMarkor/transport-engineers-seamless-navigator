@@ -20,7 +20,7 @@ const WallsLayer = () => {
     const {x, y} = newEditorData.currentState.input.cursorPositionSnapped;
 
     const newX = fixPrecisionError(x / scaledGridSize);  // Перевод коордов в метры
-    const newY = fixPrecisionError(y / scaledGridSize);
+    const newY = fixPrecisionError(-y / scaledGridSize);
 
     const newWall = newEditorData.currentState.newObjects.newWall;
 
@@ -34,6 +34,10 @@ const WallsLayer = () => {
     if (!newEditorData.objects.walls.some(wall => doWallsIntersect(wall, potentialWall))) {
       newEditorData.objects.walls.push(potentialWall);
       newEditorData.currentState.newObjects.newWall = null;
+      newEditorData.currentState.selectedObject = {
+        type: "wall",
+        index: newEditorData.objects.walls.length - 1,
+      };
     }
 
     return newEditorData;
@@ -60,7 +64,7 @@ const WallsLayer = () => {
           key={`wall-${0}`}
           points={[
             newWall.x1 * scaledGridSize / geometry.scale,
-            newWall.y1 * scaledGridSize / geometry.scale,
+            -newWall.y1 * scaledGridSize / geometry.scale,
             input.cursorPositionSnapped.x / geometry.scale,
             input.cursorPositionSnapped.y / geometry.scale,
           ]}
@@ -74,8 +78,8 @@ const WallsLayer = () => {
         <Line
           key={`wall-${index}`}
           points={[
-            wall.x1 * scaledGridSize, wall.y1 * scaledGridSize,
-            wall.x2 * scaledGridSize, wall.y2 * scaledGridSize,
+            wall.x1 * scaledGridSize, -wall.y1 * scaledGridSize,
+            wall.x2 * scaledGridSize, -wall.y2 * scaledGridSize,
           ]}
           stroke="#FF7827"
           strokeWidth={3 * geometry.scale}

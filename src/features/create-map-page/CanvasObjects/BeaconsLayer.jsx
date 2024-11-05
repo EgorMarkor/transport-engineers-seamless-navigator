@@ -19,12 +19,16 @@ const BeaconsLayer = () => {
     const {x, y} = newEditorData.currentState.input.cursorPositionSnapped;
 
     const newX = fixPrecisionError(x / scaledGridSize);  // Перевод коордов в метры
-    const newY = fixPrecisionError(y / scaledGridSize);
+    const newY = fixPrecisionError(-y / scaledGridSize);
 
     const isOccupied = newEditorData.objects.beacons.some(beacon => beacon.x === newX && beacon.y === newY);
 
     if (!isOccupied) {
       newEditorData.objects.beacons.push({x: newX, y: newY});
+      newEditorData.currentState.selectedObject = {
+        type: "beacon",
+        index: newEditorData.objects.beacons.length - 1,
+      };
     }
 
     return newEditorData;
@@ -50,7 +54,7 @@ const BeaconsLayer = () => {
         <Circle
           key={`beacon-${index}`}
           x={beacon.x * scaledGridSize}
-          y={beacon.y * scaledGridSize}
+          y={-beacon.y * scaledGridSize}
           radius={5 * geometry.scale}
           fill="#4F5AFF"
           onClick={event => selectObject("beacon", index, tool, event, setEditorData)}

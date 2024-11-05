@@ -1,6 +1,9 @@
-const generateGeoJSON = objects => {
+const generateGeoJSON = (objects, bluetoothID) => {
   const output = {
     "type": "FeatureCollection",
+    "properties": {
+      "bluetoothID": bluetoothID,
+    },
     "features": [],
   };
 
@@ -26,6 +29,17 @@ const generateGeoJSON = objects => {
     "geometry": {
       "type": "Point",
       "coordinates": [beacon.x, beacon.y],
+    },
+  }));
+
+  objects.doors.forEach(door => output.features.push({
+    "type": "Feature",
+    "properties": {
+      "objectType": "door",
+    },
+    "geometry": {
+      "type": "Point",
+      "coordinates": [door.x, door.y],
     },
   }));
 
