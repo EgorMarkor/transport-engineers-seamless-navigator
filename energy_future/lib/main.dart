@@ -85,6 +85,11 @@ class _MapScreenState extends State<MapScreen> {
             SizedBox(height: 20),
             ElevatedButton(
               onPressed: () => _updateMarker(40.7128, -74.0060),  // Пример обновления
+              style: ButtonStyle(
+    backgroundColor: MaterialStateProperty.all(Colors.white), // Изменяем цвет фона кнопки на зеленый
+    foregroundColor: MaterialStateProperty.all(Colors.purple), // Изменяем цвет текста на кнопке на белый
+    textStyle: MaterialStateProperty.all(TextStyle(fontSize: 16)), // Изменяем размер текста
+  ),
               child: Text('Обновить метку'),
             ),
           ],
@@ -100,11 +105,14 @@ class ProfileScreen extends StatefulWidget {
   _ProfileScreenState createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _ProfileScreenState extends State<ProfileScreen>  {
   File? _image;  // Фото пользователя
   final ImagePicker _picker = ImagePicker();
   String _firstName = '';
   String _lastName = '';
+  String _phoneNumber = '';
+  String _selectedValue = 'Билет 1';
+  List<bool> _isExpanded = [false, false, false]; // Список состояний для каждой вкладки
   List<String> _tickets = ['Билет 1', 'Билет 2', 'Билет 3'];  // Пример списка билетов
 
   // Выбор изображения
@@ -123,6 +131,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       appBar: AppBar(title: Text('Личный кабинет')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
+        child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -145,24 +154,75 @@ class _ProfileScreenState extends State<ProfileScreen> {
               decoration: InputDecoration(labelText: 'Фамилия'),
               onChanged: (value) => setState(() => _lastName = value),
             ),
+            TextField(
+              decoration: InputDecoration(labelText: 'Номер телефона'),
+              onChanged: (value) => setState(() => _phoneNumber = value),
+            ),
+            SizedBox(height: 30),
+            Row( // Используем Row для горизонтального расположения кнопок
+              mainAxisAlignment: MainAxisAlignment.center, // Центрируем кнопки по горизонтали
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    // Действие для первой кнопки
+                  },
+                  style: ButtonStyle(
+    backgroundColor: MaterialStateProperty.all(Colors.purple), // Изменяем цвет фона кнопки на зеленый
+    foregroundColor: MaterialStateProperty.all(Colors.white), // Изменяем цвет текста на кнопке на белый
+    textStyle: MaterialStateProperty.all(TextStyle(fontSize: 16)), // Изменяем размер текста
+  ),
+                  child: Text('Войти'),
+                ),
+                SizedBox(width: 16), // Отступ между кнопками
+                ElevatedButton(
+                  onPressed: () {
+                    // Действие для первой кнопки
+                  },
+                  style: ButtonStyle(
+    backgroundColor: MaterialStateProperty.all(Colors.white), // Изменяем цвет фона кнопки на зеленый
+    foregroundColor: MaterialStateProperty.all(Colors.purple), // Изменяем цвет текста на кнопке на белый
+    textStyle: MaterialStateProperty.all(TextStyle(fontSize: 16)), // Изменяем размер текста
+  ),
+                  child: Text('Зарегестрироваться'),
+                )],),
             SizedBox(height: 20),
             Text(
               'Список билетов:',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: _tickets.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    leading: Icon(Icons.confirmation_number),
-                    title: Text(_tickets[index]),
-                  );
+            ExpansionPanelList(
+                expansionCallback: (panelIndex, isExpanded) {
+                  setState(() {
+                    _isExpanded[panelIndex] = !isExpanded;
+                  });
                 },
+                children: [
+                  ExpansionPanel(
+                    headerBuilder: (BuildContext context, bool isExpanded) {
+                      return ListTile(title: Text(_tickets[0]));
+                    },
+                    body: ListTile(title: Text("Content for Panel 1")),
+                    isExpanded: _isExpanded[0],
+                  ),
+                  ExpansionPanel(
+                    headerBuilder: (BuildContext context, bool isExpanded) {
+                      return ListTile(title: Text(_tickets[1]));
+                    },
+                    body: ListTile(title: Text("Content for Panel 2")),
+                    isExpanded: _isExpanded[1],
+                  ),
+                  ExpansionPanel(
+                    headerBuilder: (BuildContext context, bool isExpanded) {
+                      return ListTile(title: Text(_tickets[2]));
+                    },
+                    body: ListTile(title: Text("Content for Panel 1")),
+                    isExpanded: _isExpanded[2],
+                  ),
+                ],
               ),
-            ),
           ],
         ),
+      ),
       ),
     );
   }
