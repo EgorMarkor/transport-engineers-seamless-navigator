@@ -1,9 +1,6 @@
-const generateGeoJSON = (objects, bluetoothID) => {
+const generateGeoJSON = (objects) => {
   const output = {
     "type": "FeatureCollection",
-    "properties": {
-      "bluetoothID": bluetoothID,
-    },
     "features": [],
   };
 
@@ -25,6 +22,7 @@ const generateGeoJSON = (objects, bluetoothID) => {
     "type": "Feature",
     "properties": {
       "objectType": "beacon",
+      "bluetoothID": beacon.ID,
     },
     "geometry": {
       "type": "Point",

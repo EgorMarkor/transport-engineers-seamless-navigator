@@ -28,6 +28,7 @@ const BeaconsLayer = () => {
       newEditorData.currentState.selectedObject = {
         type: "beacon",
         index: newEditorData.objects.beacons.length - 1,
+        ID: "",
       };
     }
 

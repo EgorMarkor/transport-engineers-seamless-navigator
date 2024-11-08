@@ -1,9 +1,13 @@
 import {useEditorData} from "shared/hooks/useEditorData";
+import {useRef} from "react";
 
 const BeaconProperties = () => {
   const {editorData, setEditorData} = useEditorData();
+
   const selectedObject = editorData.currentState.selectedObject;
   const beacon = editorData.objects.beacons[selectedObject.index];
+
+  const idInputRef = useRef(null);
 
   const changeCoord = (coord, event) => setEditorData(prev => {
     const newEditorData = {...prev};
@@ -20,6 +24,16 @@ const BeaconProperties = () => {
     } else if (coord === "y") {
       newEditorData.objects.beacons[selectedObjectIndex].y = newCoord;
     }
+
+    return newEditorData;
+  });
+
+  const changeBluetoothId = () => setEditorData(prev => {
+    const newEditorData = {...prev};
+
+    const selectedObjectIndex = newEditorData.currentState.selectedObject.index;
+
+    newEditorData.objects.beacons[selectedObjectIndex].ID = idInputRef.current.value;
 
     return newEditorData;
   });
@@ -49,6 +63,15 @@ const BeaconProperties = () => {
           className="w-2/3 outline-none bg-inherit border-b-2"
         />
       </div>
+    </div>
+    <div className="flex flex-row w-full">
+      <p className="mr-2">Bluetooth ID:</p>
+      <input
+        ref={idInputRef}
+        defaultValue={beacon.ID}
+        onBlur={changeBluetoothId}
+        className="w-2/3 outline-none bg-inherit border-b-2"
+      />
     </div>
   </>;
 };
