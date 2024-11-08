@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_blue/flutter_blue.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io';
+import 'dart:math';
 
 void main() => runApp(MyApp());
 
@@ -24,7 +25,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
-  // Переключение между экранами "Карта" и "Личный кабинет"
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -32,7 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   final List<Widget> _pages = <Widget>[
-    MapScreen(),
+    BeaconMapScreen(),
     ProfileScreen(),
   ];
 
@@ -52,45 +52,75 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// Экран с картой и меткой
-class MapScreen extends StatefulWidget {
+// Экран с определением местоположения через Bluetooth-маяки
+class BeaconMapScreen extends StatefulWidget {
   @override
-  _MapScreenState createState() => _MapScreenState();
+  _BeaconMapScreenState createState() => _BeaconMapScreenState();
 }
 
-class _MapScreenState extends State<MapScreen> {
-  double _latitude = 37.7749;  // Начальные координаты
-  double _longitude = -122.4194;
+class _BeaconMapScreenState extends State<BeaconMapScreen> {
+  FlutterBlue _flutterBlue = FlutterBlue.instance;
+  Map<String, double> _beaconDistances = {}; // Хранение расстояний до маяков
+  String _closestBeacon = ''; // Самый близкий маяк
 
-  // Обновление координат метки
-  void _updateMarker(double latitude, double longitude) {
-    setState(() {
-      _latitude = latitude;
-      _longitude = longitude;
+  @override
+  void initState() {
+    super.initState();
+    _startScanning();
+  }
+
+  // Начало сканирования Bluetooth-маяков
+  void _startScanning() {
+    _flutterBlue.scan(timeout: Duration(seconds: 10)).listen((scanResult) {
+      final device = scanResult.device;
+      final rssi = scanResult.rssi;
+
+      // Рассчитать расстояние на основе RSSI
+      double distance = _calculateDistance(rssi);
+      setState(() {
+        _beaconDistances[device.name] = distance;
+        _closestBeacon = _getClosestBeacon();
+      });
     });
+  }
+
+  // Формула расчета расстояния (примерная, на основе RSSI и TX Power)
+  double _calculateDistance(int rssi, {int txPower = -59}) {
+    if (rssi == 0) {
+      return -1.0; // Невозможно определить расстояние
+    }
+    double ratio = rssi / txPower;
+    return pow(10, -ratio).toDouble();
+  }
+
+  // Получить ближайший маяк
+  String _getClosestBeacon() {
+    if (_beaconDistances.isEmpty) return 'Нет маяков';
+    return _beaconDistances.entries.reduce((a, b) => a.value < b.value ? a : b).key;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Карта')),
+      appBar: AppBar(title: Text('Карта маяков')),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset('assets/map_placeholder.png', height: 200), // Заглушка карты
+            Text(
+              'Определение местоположения по Bluetooth-маякам',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 20),
+            Text('Ближайший маяк: $_closestBeacon'),
             SizedBox(height: 10),
-            Text('Метка на координатах:'),
-            Text('Широта: $_latitude, Долгота: $_longitude'),
+            Text('Расстояния до маяков:'),
+            for (var entry in _beaconDistances.entries)
+              Text('${entry.key}: ${entry.value.toStringAsFixed(2)} м'),
             SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () => _updateMarker(40.7128, -74.0060),  // Пример обновления
-              style: ButtonStyle(
-    backgroundColor: MaterialStateProperty.all(Colors.white), // Изменяем цвет фона кнопки на зеленый
-    foregroundColor: MaterialStateProperty.all(Colors.purple), // Изменяем цвет текста на кнопке на белый
-    textStyle: MaterialStateProperty.all(TextStyle(fontSize: 16)), // Изменяем размер текста
-  ),
-              child: Text('Обновить метку'),
+              onPressed: _startScanning,
+              child: Text('Обновить сканирование'),
             ),
           ],
         ),
@@ -98,7 +128,6 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 }
-
 // Экран "Личный кабинет"
 class ProfileScreen extends StatefulWidget {
   @override
