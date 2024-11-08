@@ -14,8 +14,7 @@ type GeoJSON struct {
 }
 
 type FeatureSetProperties struct {
-	CreatorID   string `bson:"creatorID" json:"-"`
-	BluetoothID string `bson:"bluetoothID" json:"bluetoothID" binding:"required"`
+	CreatorID string `bson:"creatorID" json:"-"`
 }
 
 type Feature struct {

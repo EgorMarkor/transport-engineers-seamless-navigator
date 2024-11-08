@@ -24,9 +24,16 @@ func (ms *MapService) Create(c context.Context, newMap models.GeoJSON) error {
 	ctx, cancel := context.WithTimeout(c, ms.ContextTimeout)
 	defer cancel()
 
-	_, err := ms.MapRepository.GetMapByBluetoothID(ctx, newMap.Properties.BluetoothID)
-	if err == nil {
-		return domain.ErrMapAlreadyExist
+	for _, feature := range newMap.Features {
+		if feature.Properties["bluetoothID"] != nil {
+			bluetoothID, ok := feature.Properties["bluetoothID"].(string)
+			if ok {
+				_, err := ms.MapRepository.GetMapByBluetoothID(ctx, bluetoothID)
+				if err == nil {
+					return domain.ErrMapAlreadyExist
+				}
+			}
+		}
 	}
 
 	return ms.MapRepository.Create(ctx, newMap)

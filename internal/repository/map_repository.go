@@ -62,8 +62,10 @@ func (repo *MapRepository) GetMapByBluetoothID(ctx context.Context, ID string) (
 
 	collection := repo.database.Collection(repo.collection)
 	err = collection.FindOne(ctx, bson.M{
-		"properties": bson.M{
-			"bluetoothID": ID,
+		"features": bson.M{
+			"$elemMatch": bson.M{
+				"properties.bluetoothID": ID,
+			},
 		},
 	}).Decode(&result)
 	if err != nil {
