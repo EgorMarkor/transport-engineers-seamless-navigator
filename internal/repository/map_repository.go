@@ -49,14 +49,17 @@ func (repo *MapRepository) Create(ctx context.Context, newMap models.GeoJSON) er
 }
 
 func (repo *MapRepository) GetMapByBluetoothID(ctx context.Context, ID string) (models.GeoJSON, error) {
-	redisKey := fmt.Sprintf("map:%s", ID)
-	var result models.GeoJSON
+	var requestedMap models.GeoJSON
 
-	data, err := repo.redis.Get(ctx, redisKey).Bytes()
+	bleKey := fmt.Sprintf("ble:%s", ID)
+	mapKey, err := repo.redis.Get(ctx, bleKey).Result()
 	if err == nil {
-		err = json.Unmarshal(data, &result)
+		mapData, err := repo.redis.Get(ctx, mapKey).Bytes()
 		if err == nil {
-			return result, nil
+			err = json.Unmarshal(mapData, &requestedMap)
+			if err == nil {
+				return requestedMap, nil
+			}
 		}
 	}
 
@@ -67,18 +70,36 @@ func (repo *MapRepository) GetMapByBluetoothID(ctx context.Context, ID string) (
 				"properties.bluetoothID": ID,
 			},
 		},
-	}).Decode(&result)
+	}).Decode(&requestedMap)
 	if err != nil {
-		return result, err
+		return requestedMap, err
 	}
 
-	marshaledData, err := json.Marshal(result)
-	if err == nil {
-		err = repo.redis.Set(ctx, redisKey, marshaledData, time.Duration(repo.cacheExpiry)*time.Minute).Err()
-		if err != nil {
-			log.Printf("Failed to cache map in redis: %s\n", err.Error())
+	cacheExpiry := time.Duration(repo.cacheExpiry) * time.Minute
+	mapKey = fmt.Sprintf("map:%s", requestedMap.ID.Hex())
+	marshaledData, err := json.Marshal(requestedMap)
+	if err != nil {
+		return requestedMap, nil
+	}
+
+	err = repo.redis.Set(ctx, mapKey, marshaledData, cacheExpiry).Err()
+	if err != nil {
+		log.Printf("Failed to cache map in redis: %s\n", err.Error())
+		return requestedMap, nil
+	}
+
+	pipe := repo.redis.Pipeline()
+	for _, feature := range requestedMap.Features {
+		bluetoothID, ok := feature.Properties["bluetoothID"].(string)
+		if ok {
+			bleKey := fmt.Sprintf("ble:%s", bluetoothID)
+			err = pipe.Set(ctx, bleKey, mapKey, cacheExpiry).Err()
+			if err != nil {
+				log.Printf("Failed to cache ble in redis: %s\n", err.Error())
+			}
 		}
 	}
+	_, _ = pipe.Exec(ctx)
 
-	return result, err
+	return requestedMap, err
 }
