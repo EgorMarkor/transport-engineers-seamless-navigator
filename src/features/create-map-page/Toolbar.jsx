@@ -1,6 +1,7 @@
 import {useNavigate} from "react-router-dom";
 import Api from "api";
 import {useEditorData} from "shared/hooks/useEditorData";
+import {Types} from "./editorConstants";
 import generateGeoJSON from "./generateGeoJSON";
 
 const Toolbar = () => {
@@ -13,7 +14,7 @@ const Toolbar = () => {
     const mapJSON = generateGeoJSON(editorData.objects);
 
     Api.post("/map", mapJSON)
-      .then(response => navigate("/success"))
+      .then(_ => navigate("/success"))
       .catch(error => console.error(error));
   };
 
@@ -23,16 +24,31 @@ const Toolbar = () => {
     return newEditorData;
   });
 
+  const toggleGridSnapping = () => setEditorData(prev => {
+    const newEditorData = {...prev};
+    newEditorData.currentState.gridSnappingEnabled = !newEditorData.currentState.gridSnappingEnabled;
+    return newEditorData;
+  });
+
   return (
     <div className="flex flex-col items-start justify-between w-[15vw] h-[90.5vh] mx-4">
       <div>
-        <p onClick={() => changeTool("select")}>Режим выделения</p>
+        <div className="flex flex-row justify-between">
+          <p>Привязка к сетке</p>
+          <input
+            type="radio"
+            onClick={toggleGridSnapping}
+            checked={editorData?.currentState.gridSnappingEnabled}
+          />
+        </div>
+
+        <p onClick={() => changeTool(Types.SELECT)} className="mt-5">Режим выделения</p>
 
         <p className="mt-10">Создать новый объект</p>
         <div className="ml-4">
-          <p onClick={() => changeTool("wall")}>Стена</p>
-          <p onClick={() => changeTool("beacon")}>Bluetooth - маячок</p>
-          <p onClick={() => changeTool("door")}>Дверь</p>
+          <p onClick={() => changeTool(Types.WALLS)}>Стена</p>
+          <p onClick={() => changeTool(Types.BEACONS)}>Bluetooth - маячок</p>
+          <p onClick={() => changeTool(Types.DOORS)}>Дверь</p>
         </div>
       </div>
 

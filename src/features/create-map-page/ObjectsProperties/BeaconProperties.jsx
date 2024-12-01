@@ -1,5 +1,7 @@
 import {useEditorData} from "shared/hooks/useEditorData";
 import {useRef} from "react";
+import {changeCoord} from "../editorUtils";
+import {Types} from "../editorConstants";
 
 const BeaconProperties = () => {
   const {editorData, setEditorData} = useEditorData();
@@ -9,30 +11,10 @@ const BeaconProperties = () => {
 
   const idInputRef = useRef(null);
 
-  const changeCoord = (coord, event) => setEditorData(prev => {
-    const newEditorData = {...prev};
-    const newCoord = event.target.value;
-
-    if (isNaN(newCoord)) {
-      return newEditorData;
-    }
-
-    const selectedObjectIndex = newEditorData.currentState.selectedObject.index;
-
-    if (coord === "x") {
-      newEditorData.objects.beacons[selectedObjectIndex].x = newCoord;
-    } else if (coord === "y") {
-      newEditorData.objects.beacons[selectedObjectIndex].y = newCoord;
-    }
-
-    return newEditorData;
-  });
-
   const changeBluetoothId = () => setEditorData(prev => {
     const newEditorData = {...prev};
 
     const selectedObjectIndex = newEditorData.currentState.selectedObject.index;
-
     newEditorData.objects.beacons[selectedObjectIndex].ID = idInputRef.current.value;
 
     return newEditorData;
@@ -50,7 +32,7 @@ const BeaconProperties = () => {
         <input
           type="number"
           defaultValue={beacon.x}
-          onBlur={event => changeCoord("x", event)}
+          onBlur={event => changeCoord("x", Types.BEACONS, event, setEditorData)}
           className="w-2/3 outline-none bg-inherit border-b-2"
         />
       </div>
@@ -59,7 +41,7 @@ const BeaconProperties = () => {
         <input
           type="number"
           defaultValue={beacon.y}
-          onBlur={event => changeCoord("y", event)}
+          onBlur={event => changeCoord("y", Types.BEACONS, event, setEditorData)}
           className="w-2/3 outline-none bg-inherit border-b-2"
         />
       </div>

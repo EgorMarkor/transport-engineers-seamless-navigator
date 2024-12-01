@@ -9,7 +9,6 @@ const BackgroundLayer = () => {
 
   const lines = [];
 
-  // Horizontal lines
   for (let y = offset.y % scaledGridSize; y <= CANVAS_HEIGHT; y += scaledGridSize) {
     lines.push(
       <Line
@@ -21,7 +20,6 @@ const BackgroundLayer = () => {
     );
   }
 
-  // Vertical lines
   for (let x = offset.x % scaledGridSize; x <= CANVAS_WIDTH; x += scaledGridSize) {
     lines.push(
       <Line

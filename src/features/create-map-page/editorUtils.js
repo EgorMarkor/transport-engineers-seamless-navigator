@@ -15,16 +15,23 @@ export const selectObject = (objectType, index, tool, event, setEditorData) => s
   return newEditorData;
 });
 
-// Функция нужна чтобы убрать знаменитый jsовский прикол (0.1 + 0.2 === 0.300000000004)
-export const fixPrecisionError = number => {
-  const epsilon = 0.001;
-  const nearestInt = Math.round(number)
+export const canvasToWorldCoords = (coords, scaledGridSize, offset) => {
+  // Функция нужна чтобы убрать jsовский прикол 0.1 + 0.2 === 0.300000000004
+  const fixPrecisionError = number => {
+    const epsilon = 0.001;
 
-  if (Math.abs(number - nearestInt) < epsilon) {
-    return nearestInt;
-  }
+    const nearestInt = Math.round(number)
+    if (Math.abs(number - nearestInt) < epsilon) {
+      return nearestInt;
+    }
 
-  return number;
+    return number;
+  };
+
+  const worldX = fixPrecisionError((coords?.x - offset.x) / scaledGridSize);
+  const worldY = fixPrecisionError(-(coords?.y - offset.y) / scaledGridSize);
+
+  return {x: worldX, y: worldY};
 };
 
 // From chatgpt with love ❤
@@ -53,7 +60,6 @@ export const doWallsIntersect = (wall1, wall2) => {
   if (o1 === 0 && o2 === 0 && o3 === 0 && o4 === 0) {
     const wall1ContainsWall2 = onSegment(p1, q1, p2) && onSegment(p1, q2, p2);
     const wall2ContainsWall1 = onSegment(q1, p1, q2) && onSegment(q1, p2, q2);
-
     return wall1ContainsWall2 || wall2ContainsWall1;
   }
 
@@ -69,7 +75,6 @@ export const findClosestWallPoint = (walls, point, distanceThreshold) => {
     // Нахождение координат нужных векторов
     const ABx = wall.x2 - wall.x1;
     const ABy = wall.y2 - wall.y1;
-
     const ACx = point.x - wall.x1;
     const ACy = point.y - wall.y1;
 
@@ -125,3 +130,19 @@ export const findClosestWallPoint = (walls, point, distanceThreshold) => {
   return closestPoint;
 }
 
+export const changeCoord = (coord, objectsGroup, event, setEditorData) => setEditorData(prev => {
+  const newEditorData = {...prev};
+  const newCoord = parseFloat(event.target.value);
+
+  if (isNaN(newCoord)) {
+    return newEditorData;
+  }
+
+  newEditorData.undoStack.push(JSON.parse(JSON.stringify(newEditorData.objects)));
+  newEditorData.redoStack = [];
+
+  const selectedWallIndex = newEditorData.currentState.selectedObject.index;
+  newEditorData.objects[objectsGroup][selectedWallIndex][coord] = newCoord;
+
+  return newEditorData;
+});

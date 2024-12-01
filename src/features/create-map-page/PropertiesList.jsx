@@ -1,4 +1,5 @@
 import {useEditorData} from "shared/hooks/useEditorData";
+import {Types} from "./editorConstants";
 import WallProperties from "./ObjectsProperties/WallProperties";
 import BeaconProperties from "./ObjectsProperties/BeaconProperties";
 import DoorProperties from "./ObjectsProperties/DoorProperties";
@@ -11,8 +12,8 @@ const PropertiesList = () => {
     const newEditorData = {...prev};
     const {type, index} = newEditorData.currentState.selectedObject;
 
-    const objects = newEditorData.objects[`${type}s`];
-    newEditorData.objects[`${type}s`] = [
+    const objects = newEditorData.objects[type];
+    newEditorData.objects[type] = [
       ...objects.slice(0, index),
       ...objects.slice(index + 1),
     ];
@@ -33,9 +34,9 @@ const PropertiesList = () => {
   return (
     <div className="flex flex-col items-start justify-between w-[15vw] h-[90.5vh] ml-4">
       <div className="w-full">
-        {selectedObjectType === "wall" && <WallProperties/>}
-        {selectedObjectType === "beacon" && <BeaconProperties/>}
-        {selectedObjectType === "door" && <DoorProperties/>}
+        {selectedObjectType === Types.WALLS && <WallProperties/>}
+        {selectedObjectType === Types.BEACONS && <BeaconProperties/>}
+        {selectedObjectType === Types.DOORS && <DoorProperties/>}
       </div>
 
       <button

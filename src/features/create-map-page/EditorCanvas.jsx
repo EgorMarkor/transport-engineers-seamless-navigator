@@ -1,73 +1,52 @@
 import {useEffect} from "react";
 import {Stage} from "react-konva";
 import {useEditorData} from "shared/hooks/useEditorData";
+import {EMPTY_EDITOR_DATA} from "./editorConstants";
+import {canvasToWorldCoords, findClosestWallPoint} from "./editorUtils";
 import BackgroundLayer from "./CanvasObjects/BackgroundLayer";
 import WallsLayer from "./CanvasObjects/WallsLayer";
 import BeaconsLayer from "./CanvasObjects/BeaconsLayer";
-import DoorsLevel from "./CanvasObjects/DoorsLevel";
+import DoorsLayer from "./CanvasObjects/DoorsLayer";
 
 const EditorCanvas = () => {
   const {editorData, setEditorData} = useEditorData();
 
-  useEffect(() => setEditorData({  // TODO: добавить массив предыдущих действий чтобы работал ctrl + Z
-    constants: {
-      CANVAS_WIDTH: window.innerWidth * 0.7,
-      CANVAS_HEIGHT: window.innerHeight * 0.905,
-      INITIAL_GRID_SIZE: window.innerWidth * 0.03,
-      WHEEL_SCALE_RATIO: 1.1,
-    },
-    currentState: {
-      tool: "select",
-      input: {
-        cursorPosition: null,
-        cursorPositionSnapped: null,
-        isPanning: false,
-      },
-      geometry: {
-        offset: {x: 0, y: 0},
-        scale: 1,
-        scaledGridSize: window.innerWidth * 0.03,
-      },
-      newObjects: {
-        newWall: null,
-        newDoor: null,
-      },
-      selectedObject: null,
-    },
-    eventListeners: {
-      onClick: [],
-    },
-    objects: {
-      walls: [],
-      beacons: [],
-      doors: [],
-    },
-  }), []);
+  useEffect(() => setEditorData(EMPTY_EDITOR_DATA), []);
 
   const onMouseMove = event => setEditorData(prev => {
     const newEditorData = {...prev};
 
     const {cursorPosition: prevCursorPosition, isPanning} = newEditorData.currentState.input;
-    const {offset, scaledGridSize} = newEditorData.currentState.geometry;
+    const {scaledGridSize, scale} = newEditorData.currentState.geometry;
+    const walls = newEditorData.objects.walls;
 
     const cursorPosition = event.target.getStage().getPointerPosition();
+    newEditorData.currentState.input.cursorPosition = cursorPosition;
 
     if (isPanning) {
+      const offset = newEditorData.currentState.geometry.offset;
+
       const dx = cursorPosition.x - prevCursorPosition.x;
       const dy = cursorPosition.y - prevCursorPosition.y;
 
-      newEditorData.currentState.geometry.offset = {
-        x: offset.x + dx,
-        y: offset.y + dy,
-      };
+      newEditorData.currentState.geometry.offset = {x: offset.x + dx, y: offset.y + dy};
     }
 
-    const snappedX = Math.round((cursorPosition.x - offset.x) / scaledGridSize) * scaledGridSize;
-    const snappedY = Math.round((cursorPosition.y - offset.y) / scaledGridSize) * scaledGridSize;
-    const snappedPosition = {x: snappedX, y: snappedY};
+    const offset = newEditorData.currentState.geometry.offset;
+    const snappedX = Math.round((cursorPosition.x - offset.x) / scaledGridSize) * scaledGridSize + offset.x;
+    const snappedY = Math.round((cursorPosition.y - offset.y) / scaledGridSize) * scaledGridSize + offset.y;
+    newEditorData.currentState.input.cursorPositionSnapped = {x: snappedX, y: snappedY};
 
-    newEditorData.currentState.input.cursorPosition = cursorPosition;
-    newEditorData.currentState.input.cursorPositionSnapped = snappedPosition;
+    const closestWall = findClosestWallPoint(
+      walls,
+      canvasToWorldCoords(cursorPosition, scaledGridSize, offset),
+      0.7 / scale,
+    );
+    newEditorData.currentState.input.closestWallPoint.worldCoords = closestWall;
+    newEditorData.currentState.input.closestWallPoint.screenCoords = closestWall ? {
+      x: closestWall.x * scaledGridSize + offset.x,
+      y: -closestWall.y * scaledGridSize + offset.y,
+    } : null;
 
     return newEditorData;
   });
@@ -106,6 +85,55 @@ const EditorCanvas = () => {
     return newEditorData;
   });
 
+  const undo = () => setEditorData(prev => {
+    const newEditorData = {...prev};
+
+    if (prev.undoStack.length === 0) {
+      return newEditorData;
+    }
+
+    newEditorData.redoStack.push(newEditorData.objects);
+    newEditorData.objects = newEditorData.undoStack.pop();
+
+    return newEditorData;
+  });
+
+  const redo = () => setEditorData(prev => {
+    const newEditorData = {...prev};
+
+    if (prev.redoStack.length === 0) {
+      return newEditorData;
+    }
+
+    newEditorData.undoStack.push(newEditorData.objects);
+    newEditorData.objects = newEditorData.redoStack.pop();
+
+    return newEditorData;
+  });
+
+  useEffect(() => {
+    const handleKeyDown = event => {
+      if (!event.ctrlKey || !['z', 'y'].includes(event.key)) {
+        return;
+      }
+
+      setEditorData(prev => {
+        const newEditorData = {...prev};
+        newEditorData.currentState.selectedObject = null;
+        return newEditorData;
+      });
+
+      if (event.key === 'z') {
+        undo();
+      } else if (event.key === 'y') {
+        redo();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   if (!editorData) {
     return <></>;
   }
@@ -124,7 +152,7 @@ const EditorCanvas = () => {
       <BackgroundLayer/>
       <WallsLayer/>
       <BeaconsLayer/>
-      <DoorsLevel/>
+      <DoorsLayer/>
     </Stage>
   );
 };
