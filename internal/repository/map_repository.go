@@ -82,13 +82,14 @@ func (repo *MapRepository) GetMapByBluetoothID(ctx context.Context, ID string) (
 		return requestedMap, nil
 	}
 
-	err = repo.redis.Set(ctx, mapKey, marshaledData, cacheExpiry).Err()
+	pipe := repo.redis.Pipeline()
+
+	err = pipe.Set(ctx, mapKey, marshaledData, cacheExpiry).Err()
 	if err != nil {
 		log.Printf("Failed to cache map in redis: %s\n", err.Error())
 		return requestedMap, nil
 	}
 
-	pipe := repo.redis.Pipeline()
 	for _, feature := range requestedMap.Features {
 		bluetoothID, ok := feature.Properties["bluetoothID"].(string)
 		if ok {
