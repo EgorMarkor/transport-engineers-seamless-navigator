@@ -6,16 +6,17 @@ import {Types} from "../editorConstants";
 const BeaconProperties = () => {
   const {editorData, setEditorData} = useEditorData();
 
-  const selectedObject = editorData.currentState.selectedObject;
-  const beacon = editorData.objects.beacons[selectedObject.index];
+  const {floor, selectedObject} = editorData.currentState;
+  const beacon = editorData.floors[floor].objects.beacons[selectedObject.index];
 
   const idInputRef = useRef(null);
 
   const changeBluetoothId = () => setEditorData(prev => {
     const newEditorData = {...prev};
 
+    const floor = newEditorData.currentState.floor;
     const selectedObjectIndex = newEditorData.currentState.selectedObject.index;
-    newEditorData.objects.beacons[selectedObjectIndex].ID = idInputRef.current.value;
+    newEditorData.floors[floor].objects.beacons[selectedObjectIndex].ID = idInputRef.current.value;
 
     return newEditorData;
   });

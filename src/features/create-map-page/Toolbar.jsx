@@ -11,12 +11,27 @@ const Toolbar = () => {
   const saveMap = event => {
     event.preventDefault();
 
-    const mapJSON = generateGeoJSON(editorData.objects);
+    const mapJSON = generateGeoJSON(editorData.floors);
 
     Api.post("/map", mapJSON)
       .then(_ => navigate("/success"))
       .catch(error => console.error(error));
   };
+
+  const toggleSetting = setting => setEditorData(prev => {
+    const newEditorData = {...prev};
+    newEditorData.currentState.settings[setting] = !newEditorData.currentState.settings[setting];
+    return newEditorData;
+  });
+
+  const changeFloor = event => setEditorData(prev => {
+    const newEditorData = {...prev};
+
+    newEditorData.currentState.floor = parseFloat(event.target.value);
+    newEditorData.currentState.selectedObject = null;
+
+    return newEditorData;
+  });
 
   const changeTool = tool => setEditorData(prev => {
     const newEditorData = {...prev};
@@ -24,11 +39,7 @@ const Toolbar = () => {
     return newEditorData;
   });
 
-  const toggleGridSnapping = () => setEditorData(prev => {
-    const newEditorData = {...prev};
-    newEditorData.currentState.gridSnappingEnabled = !newEditorData.currentState.gridSnappingEnabled;
-    return newEditorData;
-  });
+  const settings = editorData?.currentState.settings;
 
   return (
     <div className="flex flex-col items-start justify-between w-[15vw] h-[90.5vh] mx-4">
@@ -37,8 +48,28 @@ const Toolbar = () => {
           <p>Привязка к сетке</p>
           <input
             type="radio"
-            onClick={toggleGridSnapping}
-            checked={editorData?.currentState.gridSnappingEnabled}
+            onClick={() => toggleSetting("gridSnappingEnabled")}
+            checked={settings?.gridSnappingEnabled}
+          />
+        </div>
+
+        <div className="flex flex-row justify-between">
+          <p>Показывать объекты на этаже ниже</p>
+          <input
+            type="radio"
+            onClick={() => toggleSetting("showingObjectsBeneathEnabled")}
+            checked={settings?.showingObjectsBeneathEnabled}
+          />
+        </div>
+
+        <div className="flex flex-row justify-between mt-3">
+          <p>Этаж</p>
+          <input
+            type="number"
+            step="0.5"
+            defaultValue={1}
+            onBlur={event => changeFloor(event)}
+            className="w-1/6 outline-none bg-inherit border-b-2 text-center"
           />
         </div>
 

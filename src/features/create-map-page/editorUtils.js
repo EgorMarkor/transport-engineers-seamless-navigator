@@ -1,3 +1,6 @@
+import {cloneDeep} from "lodash";
+import {EMPTY_FLOOR} from "./editorConstants";
+
 export const changeCursor = (cursorType, tool, event) => {
   if (tool === "select") {
     event.target.getStage().container().style.cursor = cursorType;
@@ -138,11 +141,47 @@ export const changeCoord = (coord, objectsGroup, event, setEditorData) => setEdi
     return newEditorData;
   }
 
-  newEditorData.undoStack.push(JSON.parse(JSON.stringify(newEditorData.objects)));
+  newEditorData.undoStack.push(JSON.parse(JSON.stringify(newEditorData.floors)));
   newEditorData.redoStack = [];
 
+  const floor = newEditorData.currentState.floor;
   const selectedWallIndex = newEditorData.currentState.selectedObject.index;
-  newEditorData.objects[objectsGroup][selectedWallIndex][coord] = newCoord;
+  newEditorData.floors[floor].objects[objectsGroup][selectedWallIndex][coord] = newCoord;
 
   return newEditorData;
 });
+
+export const createNewObject = (newEditorData, newObject, objectType) => {
+  newEditorData.undoStack.push(cloneDeep(newEditorData.floors));
+  newEditorData.redoStack = [];
+
+  const floorNumber = newEditorData.currentState.floor;
+
+  if (!newEditorData.floors[floorNumber]) {
+    newEditorData.floors[floorNumber] = cloneDeep(EMPTY_FLOOR);
+  }
+
+  const objects = newEditorData.floors[floorNumber].objects[objectType];
+
+  newEditorData.currentState.selectedObject = {
+    type: objectType,
+    index: objects.length,
+  };
+
+  newEditorData.floors[floorNumber].objects[objectType].push(newObject);
+};
+
+export const getFloorBeneath = (floors, currentFloor) => {
+  const sortedFloorNumbers = [...new Set([
+    ...Object.keys(floors),
+    currentFloor,
+  ])].map(parseFloat).sort();
+
+  const currentFloorIndex = sortedFloorNumbers.indexOf(currentFloor);
+
+  if (currentFloorIndex === -1 || currentFloorIndex === 0) {
+    return null;
+  }
+
+  return floors[sortedFloorNumbers[currentFloorIndex - 1]];
+};

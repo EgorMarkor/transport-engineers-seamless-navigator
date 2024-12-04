@@ -4,8 +4,8 @@ import {Types} from "../editorConstants";
 
 const WallProperties = () => {
   const {editorData, setEditorData} = useEditorData();
-  const selectedObject = editorData.currentState.selectedObject;
-  const wall = editorData.objects.walls[selectedObject.index];
+  const {floor, selectedObject} = editorData.currentState;
+  const wall = editorData.floors[floor].objects.walls[selectedObject.index];
 
   return <>
     <div className="flex justify-center w-full">

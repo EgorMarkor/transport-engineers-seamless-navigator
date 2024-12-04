@@ -11,12 +11,22 @@ const PropertiesList = () => {
   const deleteSelectedObject = () => setEditorData(prev => {
     const newEditorData = {...prev};
     const {type, index} = newEditorData.currentState.selectedObject;
+    const floorNumber = newEditorData.currentState.floor;
 
-    const objects = newEditorData.objects[type];
-    newEditorData.objects[type] = [
+    const objects = newEditorData.floors[floorNumber].objects[type];
+    newEditorData.floors[floorNumber].objects[type] = [
       ...objects.slice(0, index),
       ...objects.slice(index + 1),
     ];
+
+
+    const isFloorEmpty = Object.values(newEditorData.floors[floorNumber].objects).every(
+      objectsArray => objectsArray.length === 0
+    );
+
+    if (isFloorEmpty) {
+      delete newEditorData.floors[floorNumber];
+    }
 
     newEditorData.currentState.selectedObject = null;
 

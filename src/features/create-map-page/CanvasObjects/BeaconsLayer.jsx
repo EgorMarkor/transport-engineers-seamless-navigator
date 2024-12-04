@@ -2,7 +2,7 @@ import {useEffect} from "react";
 import {Circle, Layer} from "react-konva";
 import {useEditorData} from "shared/hooks/useEditorData";
 import {Types} from "../editorConstants";
-import {canvasToWorldCoords, changeCursor, selectObject} from "../editorUtils";
+import {canvasToWorldCoords, changeCursor, createNewObject, getFloorBeneath, selectObject} from "../editorUtils";
 
 const BeaconsLayer = () => {
   const {editorData, setEditorData} = useEditorData();
@@ -14,10 +14,10 @@ const BeaconsLayer = () => {
       return newEditorData;
     }
 
-    const {geometry, input, gridSnappingEnabled} = newEditorData.currentState;
+    const {floor, geometry, input, settings} = newEditorData.currentState;
     const {scaledGridSize, offset} = geometry;
-    const beacons = newEditorData.objects.beacons;
-    const cursorPosition = gridSnappingEnabled ?
+    const beacons = newEditorData.floors[floor]?.objects?.beacons || [];
+    const cursorPosition = settings.gridSnappingEnabled ?
       input.cursorPositionSnapped :
       input.closestWallPoint.screenCoords || input.cursorPosition;
 
@@ -25,14 +25,8 @@ const BeaconsLayer = () => {
     const isOccupied = beacons.some(beacon => beacon.x === newX && beacon.y === newY);
 
     if (!isOccupied) {
-      newEditorData.undoStack.push(JSON.parse(JSON.stringify(newEditorData.objects)));
-      newEditorData.redoStack = [];
-      newEditorData.objects.beacons.push({x: newX, y: newY});
-      newEditorData.currentState.selectedObject = {
-        type: Types.BEACONS,
-        index: beacons.length - 1,
-        ID: "",
-      };
+      const newBeacon = {x: newX, y: newY};
+      createNewObject(newEditorData, newBeacon, Types.BEACONS);
     }
 
     return newEditorData;
@@ -44,8 +38,11 @@ const BeaconsLayer = () => {
     return newEditorData;
   }), []);
 
-  const {tool, input, geometry, gridSnappingEnabled} = editorData.currentState;
+  const {tool, floor, input, geometry, settings} = editorData.currentState;
   const {scaledGridSize, offset, scale} = geometry;
+  const {gridSnappingEnabled, showingObjectsBeneathEnabled} = settings;
+  const beacons = editorData.floors[floor]?.objects?.beacons || [];
+  const beaconsBeneath = getFloorBeneath(editorData.floors, floor)?.objects?.beacons || [];
   const cursorPosition = gridSnappingEnabled ?
     input.cursorPositionSnapped :
     input.closestWallPoint.screenCoords || input.cursorPosition;
@@ -57,20 +54,30 @@ const BeaconsLayer = () => {
           x={cursorPosition.x}
           y={cursorPosition.y}
           radius={10}
-          fill="#4F5AFF"
+          fill="rgb(79, 90, 255)"
         />
       )}
-      {editorData.objects.beacons.map((beacon, index) => (
+      {beacons.map((beacon, index) => (
         <Circle
           key={`beacon-${index}`}
           x={beacon.x * scaledGridSize + offset.x}
           y={-beacon.y * scaledGridSize + offset.y}
           radius={5 * scale}
-          fill="#4F5AFF"
+          fill="rgb(79, 90, 255)"
           onClick={event => selectObject(Types.BEACONS, index, tool, event, setEditorData)}
           onMouseEnter={event => changeCursor("pointer", tool, event)}
           onMouseLeave={event => changeCursor("default", tool, event)}
           hitStrokeWidth={20}
+        />
+      ))}
+      {showingObjectsBeneathEnabled && beaconsBeneath.map((beacon, index) => (
+        <Circle
+          key={`beacon-beneath-${index}`}
+          x={beacon.x * scaledGridSize + offset.x}
+          y={-beacon.y * scaledGridSize + offset.y}
+          radius={5 * scale}
+          fill="rgb(79, 90, 255)"
+          opacity={0.3}
         />
       ))}
     </Layer>

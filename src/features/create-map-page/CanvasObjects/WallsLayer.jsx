@@ -2,7 +2,14 @@ import {useEffect} from "react";
 import {Circle, Layer, Line} from "react-konva";
 import {useEditorData} from "shared/hooks/useEditorData";
 import {Types} from "../editorConstants";
-import {canvasToWorldCoords, changeCursor, doWallsIntersect, selectObject} from "../editorUtils";
+import {
+  canvasToWorldCoords,
+  changeCursor,
+  createNewObject,
+  doWallsIntersect,
+  getFloorBeneath,
+  selectObject
+} from "../editorUtils";
 
 const WallsLayer = () => {
   const {editorData, setEditorData} = useEditorData();
@@ -14,10 +21,11 @@ const WallsLayer = () => {
       return newEditorData;
     }
 
-    const {input, geometry, newObjects, gridSnappingEnabled} = newEditorData.currentState;
+    const {floor: floorNumber, input, geometry, newObjects, settings} = newEditorData.currentState;
     const {scaledGridSize, offset} = geometry;
-    const walls = newEditorData.objects.walls;
-    const cursorPosition = gridSnappingEnabled ?
+    const floor = newEditorData.floors[floorNumber];
+    const walls = floor?.objects?.walls || [];
+    const cursorPosition = settings.gridSnappingEnabled ?
       input.cursorPositionSnapped :
       input.closestWallPoint.screenCoords || input.cursorPosition;
 
@@ -33,14 +41,8 @@ const WallsLayer = () => {
     const isOccupied = walls.some(wall => doWallsIntersect(wall, potentialWall))
 
     if (!isOccupied) {
-      newEditorData.undoStack.push(JSON.parse(JSON.stringify(newEditorData.objects)));
-      newEditorData.redoStack = [];
-      newEditorData.objects.walls.push(potentialWall);
+      createNewObject(newEditorData, potentialWall, Types.WALLS);
       newEditorData.currentState.newObjects.newWall = null;
-      newEditorData.currentState.selectedObject = {
-        type: Types.WALLS,
-        index: newEditorData.objects.walls.length - 1,
-      };
     }
 
     return newEditorData;
@@ -52,10 +54,12 @@ const WallsLayer = () => {
     return newEditorData;
   }), []);
 
-  const {tool, input, geometry, newObjects, gridSnappingEnabled} = editorData.currentState;
-  const walls = editorData.objects.walls;
+  const {tool, floor, input, geometry, newObjects, settings} = editorData.currentState;
   const {scaledGridSize, offset} = geometry;
+  const {gridSnappingEnabled, showingObjectsBeneathEnabled} = settings;
   const newWall = newObjects.newWall;
+  const walls = editorData.floors[floor]?.objects?.walls || [];
+  const wallsBeneath = getFloorBeneath(editorData.floors, floor)?.objects?.walls || [];
   const cursorPosition = gridSnappingEnabled ?
     input.cursorPositionSnapped :
     input.closestWallPoint.screenCoords || input.cursorPosition;
@@ -67,7 +71,20 @@ const WallsLayer = () => {
           x={cursorPosition.x}
           y={cursorPosition.y}
           radius={10}
-          fill="#FF7827"
+          fill="rgb(255, 120, 39)"
+        />
+      )}
+      {tool === Types.WALLS && input.cursorPosition && newWall !== null && (
+        <Line
+          key={`wall-${0}`}
+          points={[
+            newWall.x1 * scaledGridSize + offset.x,
+            -newWall.y1 * scaledGridSize + offset.y,
+            cursorPosition.x,
+            cursorPosition.y,
+          ]}
+          stroke="rgb(255, 120, 39)"
+          strokeWidth={3}
         />
       )}
       {walls.map((wall, index) => (
@@ -79,7 +96,7 @@ const WallsLayer = () => {
             wall.x2 * scaledGridSize + offset.x,
             -wall.y2 * scaledGridSize + offset.y,
           ]}
-          stroke="#FF7827"
+          stroke="rgb(255, 120, 39)"
           strokeWidth={3 * geometry.scale}
           onClick={event => selectObject(Types.WALLS, index, tool, event, setEditorData)}
           onMouseEnter={event => changeCursor("pointer", tool, event)}
@@ -87,19 +104,20 @@ const WallsLayer = () => {
           hitStrokeWidth={20}
         />
       ))}
-      {tool === Types.WALLS && input.cursorPosition && newWall !== null && (
+      {showingObjectsBeneathEnabled && wallsBeneath.map((wall, index) => (
         <Line
-          key={`wall-${0}`}
+          key={`wall-beneath-${index}`}
           points={[
-            newWall.x1 * scaledGridSize + offset.x,
-            -newWall.y1 * scaledGridSize + offset.y,
-            cursorPosition.x,
-            cursorPosition.y,
+            wall.x1 * scaledGridSize + offset.x,
+            -wall.y1 * scaledGridSize + offset.y,
+            wall.x2 * scaledGridSize + offset.x,
+            -wall.y2 * scaledGridSize + offset.y,
           ]}
-          stroke="#FF7827"
-          strokeWidth={3}
+          stroke="rgb(255, 120, 39)"
+          opacity={0.3}
+          strokeWidth={3 * geometry.scale}
         />
-      )}
+      ))}
     </Layer>
   );
 };

@@ -18,7 +18,7 @@ const EditorCanvas = () => {
 
     const {cursorPosition: prevCursorPosition, isPanning} = newEditorData.currentState.input;
     const {scaledGridSize, scale} = newEditorData.currentState.geometry;
-    const walls = newEditorData.objects.walls;
+    const walls = newEditorData.floors[newEditorData.currentState.floor]?.objects?.walls || [];
 
     const cursorPosition = event.target.getStage().getPointerPosition();
     newEditorData.currentState.input.cursorPosition = cursorPosition;
@@ -92,8 +92,8 @@ const EditorCanvas = () => {
       return newEditorData;
     }
 
-    newEditorData.redoStack.push(newEditorData.objects);
-    newEditorData.objects = newEditorData.undoStack.pop();
+    newEditorData.redoStack.push(newEditorData.floors);
+    newEditorData.floors = newEditorData.undoStack.pop();
 
     return newEditorData;
   });
@@ -105,8 +105,8 @@ const EditorCanvas = () => {
       return newEditorData;
     }
 
-    newEditorData.undoStack.push(newEditorData.objects);
-    newEditorData.objects = newEditorData.redoStack.pop();
+    newEditorData.undoStack.push(newEditorData.floors);
+    newEditorData.floors = newEditorData.redoStack.pop();
 
     return newEditorData;
   });

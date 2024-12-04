@@ -1,3 +1,18 @@
+export const Types = Object.freeze({
+  SELECT: "select",
+  WALLS: "walls",
+  BEACONS: "beacons",
+  DOORS: "doors",
+});
+
+export const EMPTY_FLOOR = {
+  objects: {
+    walls: [],
+    beacons: [],
+    doors: [],
+  },
+};
+
 export const EMPTY_EDITOR_DATA = {
   constants: {
     CANVAS_WIDTH: window.innerWidth * 0.7,
@@ -5,14 +20,14 @@ export const EMPTY_EDITOR_DATA = {
     INITIAL_GRID_SIZE: window.innerWidth * 0.03,
     WHEEL_SCALE_RATIO: 1.1,
   },
-  objects: {
-    walls: [],
-    beacons: [],
-    doors: [],
-  },
+  floors: {},
   currentState: {
-    tool: "select",
-    gridSnappingEnabled: true,
+    floor: 1,
+    tool: Types.SELECT,
+    settings: {
+      gridSnappingEnabled: true,
+      showingObjectsBeneathEnabled: true,
+    },
     input: {
       cursorPosition: null,
       cursorPositionSnapped: null,
@@ -39,10 +54,3 @@ export const EMPTY_EDITOR_DATA = {
     onClick: [],
   },
 };
-
-export const Types = Object.freeze({
-  SELECT: "select",
-  WALLS: "walls",
-  BEACONS: "beacons",
-  DOORS: "doors",
-});
