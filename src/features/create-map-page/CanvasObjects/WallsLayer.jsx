@@ -1,13 +1,13 @@
 import {useEffect} from "react";
 import {Circle, Layer, Line} from "react-konva";
 import {useEditorData} from "shared/hooks/useEditorData";
-import {Types} from "../editorConstants";
+import {COLORS, Types} from "../editorConstants";
 import {
   canvasToWorldCoords,
   changeCursor,
   createNewObject,
   doWallsIntersect,
-  getFloorBeneath,
+  getFloorByOffset,
   selectObject
 } from "../editorUtils";
 
@@ -24,13 +24,13 @@ const WallsLayer = () => {
     const {floor: floorNumber, input, geometry, newObjects, settings} = newEditorData.currentState;
     const {scaledGridSize, offset} = geometry;
     const floor = newEditorData.floors[floorNumber];
-    const walls = floor?.objects?.walls || [];
+    const walls = floor?.objects[Types.WALLS] || [];
     const cursorPosition = settings.gridSnappingEnabled ?
       input.cursorPositionSnapped :
       input.closestWallPoint.screenCoords || input.cursorPosition;
 
     const {x: newX, y: newY} = canvasToWorldCoords(cursorPosition, scaledGridSize, offset);
-    const newWall = newObjects.newWall;
+    const {newWall} = newObjects;
 
     if (!newWall) {
       newEditorData.currentState.newObjects.newWall = {x1: newX, y1: newY};
@@ -42,7 +42,6 @@ const WallsLayer = () => {
 
     if (!isOccupied) {
       createNewObject(newEditorData, potentialWall, Types.WALLS);
-      newEditorData.currentState.newObjects.newWall = null;
     }
 
     return newEditorData;
@@ -54,36 +53,36 @@ const WallsLayer = () => {
     return newEditorData;
   }), []);
 
-  const {tool, floor, input, geometry, newObjects, settings} = editorData.currentState;
+  const {floors} = editorData;
+  const {tool, floor, input, geometry, newObjects, settings, floorsToForceShow} = editorData.currentState;
   const {scaledGridSize, offset} = geometry;
   const {gridSnappingEnabled, showingObjectsBeneathEnabled} = settings;
   const newWall = newObjects.newWall;
-  const walls = editorData.floors[floor]?.objects?.walls || [];
-  const wallsBeneath = getFloorBeneath(editorData.floors, floor)?.objects?.walls || [];
+  const walls = floors[floor]?.objects[Types.WALLS] || [];
+  const wallsBeneath = getFloorByOffset(editorData.floors, floor, -1)?.objects[Types.WALLS] || [];
   const cursorPosition = gridSnappingEnabled ?
     input.cursorPositionSnapped :
     input.closestWallPoint.screenCoords || input.cursorPosition;
 
   return (
     <Layer>
-      {tool === Types.WALLS && input.cursorPosition && (
+      {tool === Types.WALLS && cursorPosition && (
         <Circle
           x={cursorPosition.x}
           y={cursorPosition.y}
           radius={10}
-          fill="rgb(255, 120, 39)"
+          fill={COLORS[Types.WALLS]}
         />
       )}
-      {tool === Types.WALLS && input.cursorPosition && newWall !== null && (
+      {tool === Types.WALLS && cursorPosition && newWall !== null && (
         <Line
-          key={`wall-${0}`}
           points={[
             newWall.x1 * scaledGridSize + offset.x,
             -newWall.y1 * scaledGridSize + offset.y,
             cursorPosition.x,
             cursorPosition.y,
           ]}
-          stroke="rgb(255, 120, 39)"
+          stroke={COLORS[Types.WALLS]}
           strokeWidth={3}
         />
       )}
@@ -96,7 +95,7 @@ const WallsLayer = () => {
             wall.x2 * scaledGridSize + offset.x,
             -wall.y2 * scaledGridSize + offset.y,
           ]}
-          stroke="rgb(255, 120, 39)"
+          stroke={COLORS[Types.WALLS]}
           strokeWidth={3 * geometry.scale}
           onClick={event => selectObject(Types.WALLS, index, tool, event, setEditorData)}
           onMouseEnter={event => changeCursor("pointer", tool, event)}
@@ -113,11 +112,25 @@ const WallsLayer = () => {
             wall.x2 * scaledGridSize + offset.x,
             -wall.y2 * scaledGridSize + offset.y,
           ]}
-          stroke="rgb(255, 120, 39)"
+          stroke={COLORS[Types.WALLS]}
           opacity={0.3}
           strokeWidth={3 * geometry.scale}
         />
       ))}
+      {floorsToForceShow.map(floorNumber => floors[floorNumber]?.objects[Types.WALLS].map((wall, index) => (
+        <Line
+          key={`forced-wall-${floorNumber}-${index}`}
+          points={[
+            wall.x1 * scaledGridSize + offset.x,
+            -wall.y1 * scaledGridSize + offset.y,
+            wall.x2 * scaledGridSize + offset.x,
+            -wall.y2 * scaledGridSize + offset.y,
+          ]}
+          stroke={COLORS[Types.WALLS]}
+          opacity={0.3}
+          strokeWidth={3 * geometry.scale}
+        />
+      )))}
     </Layer>
   );
 };

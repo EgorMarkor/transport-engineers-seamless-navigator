@@ -1,5 +1,5 @@
 import {cloneDeep} from "lodash";
-import {EMPTY_FLOOR} from "./editorConstants";
+import {EMPTY_FLOOR, EMPTY_NEW_OBJECTS} from "./editorConstants";
 
 export const changeCursor = (cursorType, tool, event) => {
   if (tool === "select") {
@@ -169,19 +169,60 @@ export const createNewObject = (newEditorData, newObject, objectType) => {
   };
 
   newEditorData.floors[floorNumber].objects[objectType].push(newObject);
+  newEditorData.currentState.newObjects = cloneDeep(EMPTY_NEW_OBJECTS);
 };
 
-export const getFloorBeneath = (floors, currentFloor) => {
+export const getFloorIndexByOffset = (floors, currentFloor, offset) => {
   const sortedFloorNumbers = [...new Set([
     ...Object.keys(floors),
-    currentFloor,
+    currentFloor.toString(),
   ])].map(parseFloat).sort();
 
   const currentFloorIndex = sortedFloorNumbers.indexOf(currentFloor);
+  const desiredFloorIndex = currentFloorIndex + offset;
 
-  if (currentFloorIndex === -1 || currentFloorIndex === 0) {
+  if (currentFloorIndex === -1 || desiredFloorIndex < 0 || desiredFloorIndex >= sortedFloorNumbers.length) {
     return null;
   }
 
-  return floors[sortedFloorNumbers[currentFloorIndex - 1]];
+  return sortedFloorNumbers[desiredFloorIndex];
+};
+
+export const getFloorByOffset = (floors, currentFloor, offset) => {
+  const desiredFloorIndex = getFloorIndexByOffset(floors, currentFloor, offset);
+  return floors[desiredFloorIndex];
+}
+
+export const flattenCoords = coords => {
+  if (!coords) {
+    return [];
+  }
+
+  const result = [];
+
+  for (let i = 1; true; i++) {
+    const x = coords[`x${i}`];
+    const y = coords[`y${i}`];
+
+    if (!x || !y) {
+      break;
+    }
+
+    result.push(x, y);
+  }
+
+  return result;
+};
+
+export const flatWorldToCanvasCoords = (coords, scaledGridSize, offset) => {
+  if (!coords) {
+    return [];
+  }
+
+  return coords.map((coord, index) => {
+    const coordOffset = index % 2 === 0 ? offset.x : offset.y;
+    const axisDirection = index % 2 === 0 ? 1 : -1;
+
+    return axisDirection * coord * scaledGridSize + coordOffset;
+  });
 };

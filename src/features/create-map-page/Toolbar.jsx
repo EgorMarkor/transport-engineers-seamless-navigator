@@ -1,8 +1,10 @@
 import {useNavigate} from "react-router-dom";
 import Api from "api";
 import {useEditorData} from "shared/hooks/useEditorData";
-import {Types} from "./editorConstants";
+import {EMPTY_NEW_OBJECTS, Types} from "./editorConstants";
 import generateGeoJSON from "./generateGeoJSON";
+import {getFloorIndexByOffset} from "./editorUtils";
+import {cloneDeep} from "lodash";
 
 const Toolbar = () => {
   const {editorData, setEditorData} = useEditorData();
@@ -26,18 +28,43 @@ const Toolbar = () => {
 
   const changeFloor = event => setEditorData(prev => {
     const newEditorData = {...prev};
-
     newEditorData.currentState.floor = parseFloat(event.target.value);
     newEditorData.currentState.selectedObject = null;
-
     return newEditorData;
   });
 
   const changeTool = tool => setEditorData(prev => {
     const newEditorData = {...prev};
     newEditorData.currentState.tool = tool;
+    newEditorData.currentState.newObjects = cloneDeep(EMPTY_NEW_OBJECTS);
+    newEditorData.currentState.floorsToForceShow = [];
     return newEditorData;
   });
+
+  const selectStairs = stairsType => {
+    changeTool(stairsType);
+
+    setEditorData(prev => {
+      const newEditorData = {...prev};
+
+      const {floors} = newEditorData;
+      const {floor: floorNumber} = newEditorData.currentState;
+
+      let floorToForceShow;
+
+      if (stairsType === Types.STAIRS_UP) {
+        floorToForceShow = getFloorIndexByOffset(floors, floorNumber, 1);
+      } else if (stairsType === Types.STAIRS_DOWN) {
+        floorToForceShow = getFloorIndexByOffset(floors, floorNumber, -1);
+      }
+
+      if (floorToForceShow) {
+        newEditorData.currentState.floorsToForceShow.push(floorToForceShow);
+      }
+
+      return newEditorData;
+    });
+  };
 
   const settings = editorData?.currentState.settings;
 
@@ -77,9 +104,15 @@ const Toolbar = () => {
 
         <p className="mt-10">Создать новый объект</p>
         <div className="ml-4">
-          <p onClick={() => changeTool(Types.WALLS)}>Стена</p>
-          <p onClick={() => changeTool(Types.BEACONS)}>Bluetooth - маячок</p>
-          <p onClick={() => changeTool(Types.DOORS)}>Дверь</p>
+          <div>
+            <p onClick={() => changeTool(Types.WALLS)}>Стена</p>
+            <p onClick={() => changeTool(Types.BEACONS)}>Bluetooth - маячок</p>
+            <p onClick={() => changeTool(Types.DOORS)}>Дверь</p>
+          </div>
+          <div className="mt-2">
+            <p onClick={() => selectStairs(Types.STAIRS_UP)}>Лестница вверх</p>
+            <p onClick={() => selectStairs(Types.STAIRS_DOWN)}>Лестница вниз</p>
+          </div>
         </div>
       </div>
 

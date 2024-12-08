@@ -1,24 +1,25 @@
 import {useEffect} from "react";
 import {Stage} from "react-konva";
 import {useEditorData} from "shared/hooks/useEditorData";
-import {EMPTY_EDITOR_DATA} from "./editorConstants";
+import {EMPTY_EDITOR_DATA, Types} from "./editorConstants";
 import {canvasToWorldCoords, findClosestWallPoint} from "./editorUtils";
 import BackgroundLayer from "./CanvasObjects/BackgroundLayer";
 import WallsLayer from "./CanvasObjects/WallsLayer";
 import BeaconsLayer from "./CanvasObjects/BeaconsLayer";
 import DoorsLayer from "./CanvasObjects/DoorsLayer";
+import StairsLayer from "./CanvasObjects/StairsLayer";
 
 const EditorCanvas = () => {
   const {editorData, setEditorData} = useEditorData();
 
   useEffect(() => setEditorData(EMPTY_EDITOR_DATA), []);
 
-  const onMouseMove = event => setEditorData(prev => {
+  const onMouseMove = event => setEditorData(prev => {  // FIXME когда уводишь курсор из канваса, кружок остается там
     const newEditorData = {...prev};
 
     const {cursorPosition: prevCursorPosition, isPanning} = newEditorData.currentState.input;
     const {scaledGridSize, scale} = newEditorData.currentState.geometry;
-    const walls = newEditorData.floors[newEditorData.currentState.floor]?.objects?.walls || [];
+    const walls = newEditorData.floors[newEditorData.currentState.floor]?.objects[Types.WALLS] || [];
 
     const cursorPosition = event.target.getStage().getPointerPosition();
     newEditorData.currentState.input.cursorPosition = cursorPosition;
@@ -153,6 +154,7 @@ const EditorCanvas = () => {
       <WallsLayer/>
       <BeaconsLayer/>
       <DoorsLayer/>
+      <StairsLayer/>
     </Stage>
   );
 };

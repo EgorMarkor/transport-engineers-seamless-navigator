@@ -1,15 +1,30 @@
 export const Types = Object.freeze({
   SELECT: "select",
+  BACKGROUND: "background",
+  GRID: "grid",
   WALLS: "walls",
   BEACONS: "beacons",
   DOORS: "doors",
+  STAIRS_UP: "stairsUp",
+  STAIRS_DOWN: "stairsDown",
 });
 
 export const EMPTY_FLOOR = {
   objects: {
-    walls: [],
-    beacons: [],
-    doors: [],
+    [Types.WALLS]: [],
+    [Types.BEACONS]: [],
+    [Types.DOORS]: [],
+    [Types.STAIRS_UP]: [],
+    [Types.STAIRS_DOWN]: [],
+  },
+};
+
+export const EMPTY_NEW_OBJECTS = {
+  newWall: null,
+  newStairs: {
+    bounds: null,
+    direction: null,
+    type: null,
   },
 };
 
@@ -24,10 +39,8 @@ export const EMPTY_EDITOR_DATA = {
   currentState: {
     floor: 1,
     tool: Types.SELECT,
-    settings: {
-      gridSnappingEnabled: true,
-      showingObjectsBeneathEnabled: true,
-    },
+    selectedObject: null,
+    floorsToForceShow: [],
     input: {
       cursorPosition: null,
       cursorPositionSnapped: null,
@@ -37,16 +50,16 @@ export const EMPTY_EDITOR_DATA = {
         screenCoords: null,
       },
     },
+    newObjects: EMPTY_NEW_OBJECTS,
     geometry: {
       offset: {x: 0, y: 0},
       scale: 1,
       scaledGridSize: window.innerWidth * 0.03,
     },
-    newObjects: {
-      newWall: null,
-      newDoor: null,
+    settings: {
+      gridSnappingEnabled: true,
+      showingObjectsBeneathEnabled: true,
     },
-    selectedObject: null,
   },
   undoStack: [],
   redoStack: [],
@@ -54,3 +67,18 @@ export const EMPTY_EDITOR_DATA = {
     onClick: [],
   },
 };
+
+export const COLORS = Object.freeze({
+  [Types.BACKGROUND]: "rgb(47, 48, 45)",
+  [Types.GRID]: "rgb(0, 77, 55)",
+  [Types.WALLS]: "rgb(255, 120, 39)",
+  [Types.BEACONS]: "rgb(79, 90, 255)",
+  [Types.STAIRS_UP]: {
+    bounds: "rgb(255, 235, 60)",
+    direction: "rgb(0, 200, 0)",
+  },
+  [Types.STAIRS_DOWN]: {
+    bounds: "rgb(240, 195, 0)",
+    direction: "rgb(255, 50, 50)",
+  },
+});

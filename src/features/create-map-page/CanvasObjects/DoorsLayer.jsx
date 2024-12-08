@@ -2,7 +2,7 @@ import {useEffect, useState} from "react";
 import {Image, Layer} from "react-konva";
 import {useEditorData} from "shared/hooks/useEditorData";
 import {Types} from "../editorConstants";
-import {changeCursor, createNewObject, getFloorBeneath, selectObject} from "../editorUtils";
+import {changeCursor, createNewObject, getFloorByOffset, selectObject} from "../editorUtils";
 import doorSvgPath from "./door.svg";
 
 const DoorsLayer = () => {
@@ -22,7 +22,7 @@ const DoorsLayer = () => {
     }
 
     const floor = newEditorData.currentState.floor;
-    const doors = newEditorData.floors[floor]?.objects?.doors || [];
+    const doors = newEditorData.floors[floor]?.objects[Types.DOORS] || [];
 
     const {x: newX, y: newY} = closestWallPoint;
     const isOccupied = doors.some(door => door.x === newX && door.y === newY);
@@ -50,11 +50,12 @@ const DoorsLayer = () => {
   }, []);
 
   const INITIAL_GRID_SIZE = editorData.constants.INITIAL_GRID_SIZE;
-  const {tool, floor, geometry, input, settings} = editorData.currentState;
+  const {tool, floor, geometry, input, settings, floorsToForceShow} = editorData.currentState;
+  const {floors} = editorData;
   const {offset, scaledGridSize} = geometry;
   const {showingObjectsBeneathEnabled} = settings;
-  const doors = editorData.floors[floor]?.objects?.doors || [];
-  const doorsBeneath = getFloorBeneath(editorData.floors, floor)?.objects?.doors || [];
+  const doors = editorData.floors[floor]?.objects[Types.DOORS] || [];
+  const doorsBeneath = getFloorByOffset(editorData.floors, floor, -1)?.objects[Types.DOORS] || [];
   const cursorPosition = input.cursorPosition;
   const closestWallPoint = input.closestWallPoint.screenCoords;
 
@@ -99,6 +100,19 @@ const DoorsLayer = () => {
           offsetY={INITIAL_GRID_SIZE / 2}
         />
       ))}
+      {floorsToForceShow.map(floorNumber => floors[floorNumber]?.objects[Types.DOORS].map((door, index) => (
+        <Image
+          key={`forced-door-${floorNumber}-${index}`}
+          image={image}
+          opacity={0.3}
+          x={door.x * scaledGridSize + offset.x}
+          y={-door.y * scaledGridSize + offset.y}
+          width={INITIAL_GRID_SIZE}
+          height={INITIAL_GRID_SIZE}
+          offsetX={INITIAL_GRID_SIZE / 2}
+          offsetY={INITIAL_GRID_SIZE / 2}
+        />
+      )))}
     </Layer>
   )
 };

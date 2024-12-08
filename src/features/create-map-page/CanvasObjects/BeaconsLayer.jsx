@@ -1,8 +1,8 @@
 import {useEffect} from "react";
 import {Circle, Layer} from "react-konva";
 import {useEditorData} from "shared/hooks/useEditorData";
-import {Types} from "../editorConstants";
-import {canvasToWorldCoords, changeCursor, createNewObject, getFloorBeneath, selectObject} from "../editorUtils";
+import {COLORS, Types} from "../editorConstants";
+import {canvasToWorldCoords, changeCursor, createNewObject, getFloorByOffset, selectObject} from "../editorUtils";
 
 const BeaconsLayer = () => {
   const {editorData, setEditorData} = useEditorData();
@@ -16,7 +16,7 @@ const BeaconsLayer = () => {
 
     const {floor, geometry, input, settings} = newEditorData.currentState;
     const {scaledGridSize, offset} = geometry;
-    const beacons = newEditorData.floors[floor]?.objects?.beacons || [];
+    const beacons = newEditorData.floors[floor]?.objects[Types.BEACONS] || [];
     const cursorPosition = settings.gridSnappingEnabled ?
       input.cursorPositionSnapped :
       input.closestWallPoint.screenCoords || input.cursorPosition;
@@ -38,11 +38,12 @@ const BeaconsLayer = () => {
     return newEditorData;
   }), []);
 
-  const {tool, floor, input, geometry, settings} = editorData.currentState;
+  const {tool, floor, input, geometry, settings, floorsToForceShow} = editorData.currentState;
+  const {floors} = editorData;
   const {scaledGridSize, offset, scale} = geometry;
   const {gridSnappingEnabled, showingObjectsBeneathEnabled} = settings;
-  const beacons = editorData.floors[floor]?.objects?.beacons || [];
-  const beaconsBeneath = getFloorBeneath(editorData.floors, floor)?.objects?.beacons || [];
+  const beacons = floors[floor]?.objects[Types.BEACONS] || [];
+  const beaconsBeneath = getFloorByOffset(editorData.floors, floor, -1)?.objects[Types.BEACONS] || [];
   const cursorPosition = gridSnappingEnabled ?
     input.cursorPositionSnapped :
     input.closestWallPoint.screenCoords || input.cursorPosition;
@@ -54,7 +55,7 @@ const BeaconsLayer = () => {
           x={cursorPosition.x}
           y={cursorPosition.y}
           radius={10}
-          fill="rgb(79, 90, 255)"
+          fill={COLORS[Types.BEACONS]}
         />
       )}
       {beacons.map((beacon, index) => (
@@ -63,7 +64,7 @@ const BeaconsLayer = () => {
           x={beacon.x * scaledGridSize + offset.x}
           y={-beacon.y * scaledGridSize + offset.y}
           radius={5 * scale}
-          fill="rgb(79, 90, 255)"
+          fill={COLORS[Types.BEACONS]}
           onClick={event => selectObject(Types.BEACONS, index, tool, event, setEditorData)}
           onMouseEnter={event => changeCursor("pointer", tool, event)}
           onMouseLeave={event => changeCursor("default", tool, event)}
@@ -76,10 +77,20 @@ const BeaconsLayer = () => {
           x={beacon.x * scaledGridSize + offset.x}
           y={-beacon.y * scaledGridSize + offset.y}
           radius={5 * scale}
-          fill="rgb(79, 90, 255)"
+          fill={COLORS[Types.BEACONS]}
           opacity={0.3}
         />
       ))}
+      {floorsToForceShow.map(floorNumber => floors[floorNumber]?.objects[Types.BEACONS].map((beacon, index) => (
+        <Circle
+          key={`forced-beacon-${floorNumber}-${index}`}
+          x={beacon.x * scaledGridSize + offset.x}
+          y={-beacon.y * scaledGridSize + offset.y}
+          radius={5 * scale}
+          fill={COLORS[Types.BEACONS]}
+          opacity={0.3}
+        />
+      )))}
     </Layer>
   );
 };

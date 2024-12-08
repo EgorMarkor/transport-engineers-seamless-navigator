@@ -1,5 +1,6 @@
 import {Layer, Line, Rect} from "react-konva";
 import {useEditorData} from "shared/hooks/useEditorData";
+import {COLORS, Types} from "../editorConstants";
 
 const BackgroundLayer = () => {
   const {editorData, setEditorData} = useEditorData();
@@ -14,7 +15,7 @@ const BackgroundLayer = () => {
       <Line
         key={`horizontal-${y}`}
         points={[0, y, CANVAS_WIDTH, y]}
-        stroke="#004D37"
+        stroke={COLORS[Types.GRID]}
         strokeWidth={2}
       />
     );
@@ -25,7 +26,7 @@ const BackgroundLayer = () => {
       <Line
         key={`vertical-${x}`}
         points={[x, 0, x, CANVAS_HEIGHT]}
-        stroke="#004D37"
+        stroke={COLORS[Types.GRID]}
         strokeWidth={2}
       />
     );
@@ -41,7 +42,7 @@ const BackgroundLayer = () => {
 
   return (
     <Layer onClick={onClick}>
-      <Rect width={CANVAS_WIDTH} height={CANVAS_HEIGHT} fill="#2F302D"/>
+      <Rect width={CANVAS_WIDTH} height={CANVAS_HEIGHT} fill={COLORS[Types.BACKGROUND]}/>
       {lines}
     </Layer>
   );
