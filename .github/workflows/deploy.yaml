@@ -10,8 +10,18 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
+    env:
+      DEPLOY_DIRECTOR: /root/apps/transport-engineers
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
           ref: backend
+      - name: Deploy to VM
+        run: |
+          sudo apt-get install -y ssh rsync
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > deploy_key.pem
+          chmod 600 deploy_key.pem
+          ssh -i deploy_key.pem -o StrictHostKeyChecking=no ${{ env.HOST }} "mkdir -p ${{ env.DEPLOY_DIRECTORY }}"
