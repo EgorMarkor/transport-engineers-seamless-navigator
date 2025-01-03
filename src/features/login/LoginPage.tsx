@@ -1,22 +1,21 @@
-import {useState} from "react";
+import React, {useState} from "react";
 import {useNavigate} from "react-router-dom";
 import {useUser} from "shared/hooks/useUser";
-import Api from "api.js";
+import Api from "api";
 
-const SignupPage = () => {
-  const [error, setError] = useState(null);
+const LoginPage = () => {
+  const [error, setError] = useState<string | null>(null);
   const {updateUser} = useUser();
   const navigate = useNavigate();
 
-  const onSubmit = event => {
+  const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    const formData = new FormData(event.target);
-    const name = formData.get("name");
+    const formData = new FormData(event.currentTarget);
     const email = formData.get("email");
     const password = formData.get("password");
 
-    Api.post("/signup", {name, email, password})
+    Api.post("/login", {email, password})
       .then(response => {
         localStorage.setItem("accessToken", response.data.accessToken);
         localStorage.setItem("refreshToken", response.data.refreshToken);
@@ -24,38 +23,23 @@ const SignupPage = () => {
         navigate("/");
       })
       .catch(error => {
-        switch (error.status) {
-          case 409:
-            setError("Пользователь с указанным адресом электронной почты уже существует");
-            break;
-          case 400:
-            if (error.response.error === "invalid email format") {
-              setError("Неверный формат электронной почты");
-            } else {
-              setError("Имя пользователя должно быть от 3 до 16 символов");
-            }
-            break;
-          default:
-            setError("Не удалось зарегистрироваться");
-            break;
+        if (error.status === 404) {
+          setError("Пользователь с указанным адресом электронной почты не существует");
+          return;
         }
+        if (error.status === 401) {
+          setError("Неверный пароль или адрес электронной почты");
+          return;
+        }
+        setError("Не удалось войти в аккаунт");
       });
   };
 
   return <>
-    <h1 className="text-3xl text-center mt-10">Регистрация</h1>
+    <h1 className="text-3xl text-center mt-10">Вход в аккаунт</h1>
 
     <form onSubmit={onSubmit} className="mx-auto w-1/4 mt-16 flex flex-col items-center">
       {error && <h2 className="self-start mb-8 text-xl text-red-600">{error}</h2>}
-
-      <input
-        type="text"
-        autoComplete="username"
-        required={true}
-        name="name"
-        placeholder="Имя пользователя"
-        className="w-full outline-none bg-inherit border-b-2 py-2 dark:placeholder:text-dark-text-primary"
-      />
 
       <input
         type="email"
@@ -79,10 +63,10 @@ const SignupPage = () => {
         type="submit"
         className="mt-14 text-xl px-7 py-2 rounded dark:bg-dark-secondary"
       >
-        Зарегистрироваться →
+        Войти в аккаунт →
       </button>
     </form>
   </>;
-};
+}
 
-export default SignupPage;
+export default LoginPage;

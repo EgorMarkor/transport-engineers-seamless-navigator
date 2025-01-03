@@ -1,5 +1,5 @@
-import {EditorDataProvider} from "shared/hooks/useEditorData";
-import NoZoomWarning from "./NoZoomWarning";
+import {EditorStateProvider} from "shared/hooks/useEditorState";
+import NoZoomWarning from "./NoZoomWarning/NoZoomWarning";
 import Toolbar from "./Toolbar";
 import EditorCanvas from "./EditorCanvas";
 import PropertiesList from "./PropertiesList";
@@ -8,11 +8,11 @@ const CreateMapPage = () => {
   return (
     <div className="flex flex-row justify-between">
       <NoZoomWarning/>
-      <EditorDataProvider>
+      <EditorStateProvider>
         <Toolbar/>
         <EditorCanvas/>
         <PropertiesList/>
-      </EditorDataProvider>
+      </EditorStateProvider>
     </div>
   );
 };

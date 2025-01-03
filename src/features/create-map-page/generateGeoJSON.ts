@@ -1,13 +1,44 @@
-import {Types} from "./editorConstants";
+import {FloorsType, Types} from "./EditorState/types";
 
-const generateGeoJSON = floors => {
-  const output = {
+interface GeoJSON {
+  type: "FeatureCollection";
+  features: Feature[];
+}
+
+interface Feature {
+  type: "Feature";
+  properties: Record<string, any>;
+  geometry: Geometry;
+}
+
+type Geometry =
+  | {
+  type: "LineString";
+  coordinates: [number, number][];
+}
+  | {
+  type: "Point";
+  coordinates: [number, number];
+}
+  | {
+  bounds: {
+    type: "Polygon";
+    coordinates: [number, number][];
+  };
+  direction: {
+    type: "LineString";
+    coordinates: [number, number][];
+  };
+};
+
+const generateGeoJSON = (floors: FloorsType): GeoJSON => {
+  const output: GeoJSON = {
     "type": "FeatureCollection",
     "features": [],
   };
 
-  Object.entries(floors).forEach(([floorNumber, floor]) => {
-    const objects = floor.objects;
+  Object.keys(floors).forEach(floorNumber => {
+    const objects = floors[floorNumber].objects;
 
     objects[Types.WALLS].forEach(wall => output.features.push({
       "type": "Feature",

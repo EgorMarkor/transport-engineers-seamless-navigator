@@ -1,11 +1,16 @@
-import {useEditorData} from "shared/hooks/useEditorData";
-import {changeCoord} from "../editorUtils";
-import {Types} from "../editorConstants";
+import {useEditorState} from "shared/hooks/useEditorState";
+import {Property, Types} from "../EditorState/types";
+import {changeCoord} from "../utils";
 
 const WallProperties = () => {
-  const {editorData, setEditorData} = useEditorData();
-  const {floor, selectedObject} = editorData.currentState;
-  const wall = editorData.floors[floor].objects.walls[selectedObject.index];
+  const {editorState, setEditorState} = useEditorState();
+  const selectedObject = editorState.getSelectedObject();
+
+  if (!selectedObject) {
+    return <></>;
+  }
+
+  const wall = editorState.getCurrentFloor().objects[Types.WALLS][selectedObject.index];
 
   return <>
     <div className="flex justify-center w-full">
@@ -23,7 +28,7 @@ const WallProperties = () => {
             <input
               type="number"
               defaultValue={wall.x1}
-              onBlur={event => changeCoord("x1", Types.WALLS, event, setEditorData)}
+              onBlur={event => changeCoord(Property.x1, Types.WALLS, event, setEditorState)}
               className="w-2/3 outline-none bg-inherit border-b-2"
             />
           </div>
@@ -32,7 +37,7 @@ const WallProperties = () => {
             <input
               type="number"
               defaultValue={wall.y1}
-              onBlur={event => changeCoord("y1", Types.WALLS, event, setEditorData)}
+              onBlur={event => changeCoord(Property.y1, Types.WALLS, event, setEditorState)}
               className="w-2/3 outline-none bg-inherit border-b-2"
             />
           </div>
@@ -48,7 +53,7 @@ const WallProperties = () => {
             <input
               type="number"
               defaultValue={wall.x2}
-              onBlur={event => changeCoord("x2", Types.WALLS, event, setEditorData)}
+              onBlur={event => changeCoord(Property.x2, Types.WALLS, event, setEditorState)}
               className="w-2/3 outline-none bg-inherit border-b-2"
             />
           </div>
@@ -57,7 +62,7 @@ const WallProperties = () => {
             <input
               type="number"
               defaultValue={wall.y2}
-              onBlur={event => changeCoord("y2", Types.WALLS, event, setEditorData)}
+              onBlur={event => changeCoord(Property.y2, Types.WALLS, event, setEditorState)}
               className="w-2/3 outline-none bg-inherit border-b-2"
             />
           </div>

@@ -2,7 +2,11 @@ import {useUser} from "shared/hooks/useUser";
 import {useState} from "react";
 import {Link} from "react-router-dom";
 
-const ProfileButton = ({className}) => {
+interface ProfileButtonProps {
+  className: string;
+}
+
+const ProfileButton = ({className}: ProfileButtonProps) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const {user} = useUser();
 

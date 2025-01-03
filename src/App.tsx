@@ -1,4 +1,4 @@
-import {useEffect} from "react";
+import React, {useEffect} from "react";
 import {Route, Routes} from "react-router-dom";
 import Navbar from "./features/navbar/Navbar";
 import MainPage from "./features/main-page/MainPage";
@@ -8,7 +8,7 @@ import LoginPage from "./features/login/LoginPage";
 import CreateMapPage from "./features/create-map-page/CreateMapPage";
 import "./index.css";
 
-const App = () => {
+const App: React.FC = () => {
   useEffect(() => {
     document.documentElement.classList.add("dark");
   }, []);

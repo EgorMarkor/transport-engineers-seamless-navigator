@@ -1,12 +1,14 @@
 import {Layer, Line, Rect} from "react-konva";
-import {useEditorData} from "shared/hooks/useEditorData";
-import {COLORS, Types} from "../editorConstants";
+import {KonvaEventObject} from "konva/lib/Node";
+import {useEditorState} from "shared/hooks/useEditorState";
+import {COLORS} from "../EditorState/editorConstants";
+import {Types} from "../EditorState/types";
 
 const BackgroundLayer = () => {
-  const {editorData, setEditorData} = useEditorData();
+  const {editorState, setEditorState} = useEditorState();
 
-  const {CANVAS_HEIGHT, CANVAS_WIDTH} = editorData.constants;
-  const {offset, scaledGridSize} = editorData.currentState.geometry;
+  const {CANVAS_HEIGHT, CANVAS_WIDTH} = editorState.getConstants();
+  const {offset, scaledGridSize} = editorState.getCurrentGeometry();
 
   const lines = [];
 
@@ -32,12 +34,12 @@ const BackgroundLayer = () => {
     );
   }
 
-  const onClick = event => setEditorData(prev => {
-    const newEditorData = {...prev};
-    if (newEditorData.currentState.tool === "select" && event.evt.button === 0) {
-      newEditorData.currentState.selectedObject = null;
+  const onClick = (event: KonvaEventObject<PointerEvent>) => setEditorState(prevState => {
+    const newState = prevState.copy();
+    if (prevState.getCurrentTool() === "select" && event.evt.button === 0) {
+      newState.clearSelection();
     }
-    return newEditorData;
+    return newState;
   });
 
   return (
