@@ -12,6 +12,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
+      HOST: ${{ vars.HOST }}
       DEPLOY_DIRECTOR: /root/apps/transport-engineers
 
     steps:
@@ -22,7 +23,7 @@ jobs:
 
       - name: Debug
         run: |
-          echo "HOST: ${{ vars.HOST }}"
+          echo "HOST: ${{ env.HOST }}"
           echo "DEPLOY_DIRECTORY: $DEPLOY_DIRECTORY"
 
       - name: Deploy to VM
@@ -33,4 +34,3 @@ jobs:
           ssh -i deploy_key.pem -o StrictHostKeyChecking=no ${{ env.HOST }} "mkdir -p ${{ env.DEPLOY_DIRECTORY }}"
         env:
           DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
-          HOST: ${{ vars.HOST }}
