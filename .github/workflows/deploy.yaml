@@ -23,7 +23,7 @@ jobs:
 
       - name: Debug
         run: |
-          echo "HOST: ${{ env.HOST }}"
+          echo "HOST: $HOST"
           echo "DEPLOY_DIRECTORY: $DEPLOY_DIRECTORY"
 
       - name: Deploy to VM
