@@ -20,6 +20,11 @@ jobs:
         with:
           ref: backend
 
+      - name: Debug
+        run: |
+          echo "HOST: ${{ vars.HOST }}"
+          echo "DEPLOY_DIRECTORY: $DEPLOY_DIRECTORY"
+
       - name: Deploy to VM
         run: |
           sudo apt-get install -y ssh rsync
