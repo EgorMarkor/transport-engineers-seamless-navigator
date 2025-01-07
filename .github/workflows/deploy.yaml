@@ -1,11 +1,11 @@
 name: Deploy App
 
 on:
+  push:
+    branches:
+      - frontend
+      - backend
   workflow_dispatch:
-    inputs:
-      tag:
-        description: "Tag to deploy"
-        required: true
 
 jobs:
   deploy:
