@@ -6,6 +6,7 @@ import SignupPage from "./features/signup/SignupPage";
 import LogoutPage from "./features/logout/LogoutPage";
 import LoginPage from "./features/login/LoginPage";
 import CreateMapPage from "./features/create-map-page/CreateMapPage";
+import SuccessPage from "./features/success-page/SuccessPage";
 import "./index.css";
 
 const App: React.FC = () => {
@@ -22,6 +23,7 @@ const App: React.FC = () => {
       <Route path="/logout" element={<LogoutPage/>}/>
       <Route path="/login" element={<LoginPage/>}/>
       <Route path="/create-map" element={<CreateMapPage/>}/>
+      <Route path="/success" element={<SuccessPage/>}/>
     </Routes>
   </>;
 }
