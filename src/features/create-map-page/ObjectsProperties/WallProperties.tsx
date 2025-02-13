@@ -12,6 +12,8 @@ const WallProperties = () => {
 
   const wall = editorState.getCurrentFloor().objects[Types.WALLS][selectedObject.index];
 
+  console.log(wall);
+
   return <>
     <div className="flex justify-center w-full">
       <p>Стена</p>
@@ -27,7 +29,7 @@ const WallProperties = () => {
             <p className="mr-2">x: </p>
             <input
               type="number"
-              defaultValue={wall.x1}
+              value={wall.x1}
               onBlur={event => changeCoord(Property.x1, Types.WALLS, event, setEditorState)}
               className="w-2/3 outline-none bg-inherit border-b-2"
             />
@@ -36,7 +38,7 @@ const WallProperties = () => {
             <p className="mr-2">y: </p>
             <input
               type="number"
-              defaultValue={wall.y1}
+              value={wall.y1}
               onBlur={event => changeCoord(Property.y1, Types.WALLS, event, setEditorState)}
               className="w-2/3 outline-none bg-inherit border-b-2"
             />
@@ -52,7 +54,7 @@ const WallProperties = () => {
             <p className="mr-2">x: </p>
             <input
               type="number"
-              defaultValue={wall.x2}
+              value={wall.x2}
               onBlur={event => changeCoord(Property.x2, Types.WALLS, event, setEditorState)}
               className="w-2/3 outline-none bg-inherit border-b-2"
             />
@@ -61,7 +63,7 @@ const WallProperties = () => {
             <p className="mr-2">y: </p>
             <input
               type="number"
-              defaultValue={wall.y2}
+              value={wall.y2}
               onBlur={event => changeCoord(Property.y2, Types.WALLS, event, setEditorState)}
               className="w-2/3 outline-none bg-inherit border-b-2"
             />
