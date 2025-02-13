@@ -62,3 +62,21 @@ func (mh *MapHandler) Fetch(c *gin.Context) {
 
 	c.JSON(http.StatusOK, result)
 }
+
+func (mh *MapHandler) Delete(c *gin.Context) {
+	bluetoothID := c.Param("bluetoothID")
+
+	err := mh.MapService.DeleteMapByBluetoothID(c, bluetoothID)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			c.JSON(http.StatusNotFound, gin.H{"message": "Map doesn't exist"})
+			return
+		}
+
+		log.Printf("Failed to get map: %s\n", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to get map"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Map deleted successfully"})
+}

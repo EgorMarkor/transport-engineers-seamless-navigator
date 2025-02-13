@@ -44,3 +44,9 @@ func (ms *MapService) GetMapByBluetoothID(c context.Context, ID string) (models.
 	defer cancel()
 	return ms.MapRepository.GetMapByBluetoothID(ctx, ID)
 }
+
+func (ms *MapService) DeleteMapByBluetoothID(c context.Context, ID string) error {
+	ctx, cancel := context.WithTimeout(c, ms.ContextTimeout)
+	defer cancel()
+	return ms.MapRepository.DeleteMapByBluetoothID(ctx, ID)
+}

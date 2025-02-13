@@ -104,3 +104,37 @@ func (repo *MapRepository) GetMapByBluetoothID(ctx context.Context, ID string) (
 
 	return requestedMap, err
 }
+
+func (repo *MapRepository) DeleteMapByBluetoothID(ctx context.Context, ID string) error {
+	var deletedMap models.GeoJSON
+
+	collection := repo.database.Collection(repo.collection)
+
+	err := collection.FindOneAndDelete(ctx, bson.M{
+		"features": bson.M{
+			"$elemMatch": bson.M{
+				"properties.bluetoothID": ID,
+			},
+		},
+	}).Decode(&deletedMap)
+	if err != nil {
+		return err
+	}
+
+	mapKey := fmt.Sprintf("map:%s", deletedMap.ID.Hex())
+
+	if err := repo.redis.Del(ctx, mapKey).Err(); err != nil {
+		log.Printf("Failed to delete map key from Redis: %v", err)
+	}
+
+	for _, feature := range deletedMap.Features {
+		if bluetoothID, ok := feature.Properties["bluetoothID"].(string); ok {
+			bleKey := fmt.Sprintf("ble:%s", bluetoothID)
+			if err := repo.redis.Del(ctx, bleKey).Err(); err != nil {
+				log.Printf("Failed to delete BLE key from Redis: %v", err)
+			}
+		}
+	}
+
+	return nil
+}

@@ -28,4 +28,5 @@ func NewMapRouter(
 
 	privateGroup.POST("/map", mapHandler.Create)
 	publicGroup.GET("/map/:bluetoothID", mapHandler.Fetch)
+	publicGroup.DELETE("/map/:bluetoothID", mapHandler.Delete)
 }
