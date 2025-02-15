@@ -1,18 +1,43 @@
+import React, {useEffect, useState} from "react";
 import {useEditorState} from "shared/hooks/useEditorState";
-import {Property, Types} from "../EditorState/types";
+import {Property, Types, WallType} from "../EditorState/types";
 import {changeCoord} from "../utils";
 
 const WallProperties = () => {
   const {editorState, setEditorState} = useEditorState();
   const selectedObject = editorState.getSelectedObject();
 
+  let wall: WallType;
+  if (selectedObject){
+    wall = editorState.getCurrentFloor().objects[Types.WALLS][selectedObject.index];
+  } else {
+    wall = {x1: 0, x2: 0, y1: 0, y2: 0};
+  }
+  const [coordinates, setCoordinates] = useState({
+    x1: wall.x1,
+    y1: wall.y1,
+    x2: wall.x2,
+    y2: wall.y2,
+  });
+
+  useEffect(() => {
+    setCoordinates({
+      x1: wall.x1,
+      y1: wall.y1,
+      x2: wall.x2,
+      y2: wall.y2,
+    });
+  }, [wall]);
+
+  const handleChange = (property: Property, event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+    setCoordinates((prev) => ({...prev, [property]: value}));
+    changeCoord(property, Types.WALLS, event, setEditorState);
+  };
+
   if (!selectedObject) {
     return <></>;
   }
-
-  const wall = editorState.getCurrentFloor().objects[Types.WALLS][selectedObject.index];
-
-  console.log(wall);
 
   return <>
     <div className="flex justify-center w-full">
@@ -29,8 +54,8 @@ const WallProperties = () => {
             <p className="mr-2">x: </p>
             <input
               type="number"
-              value={wall.x1}
-              onBlur={event => changeCoord(Property.x1, Types.WALLS, event, setEditorState)}
+              value={coordinates.x1}
+              onChange={event => handleChange(Property.x1, event)}
               className="w-2/3 outline-none bg-inherit border-b-2"
             />
           </div>
@@ -38,8 +63,8 @@ const WallProperties = () => {
             <p className="mr-2">y: </p>
             <input
               type="number"
-              value={wall.y1}
-              onBlur={event => changeCoord(Property.y1, Types.WALLS, event, setEditorState)}
+              value={coordinates.y1}
+              onChange={event => handleChange(Property.y1, event)}
               className="w-2/3 outline-none bg-inherit border-b-2"
             />
           </div>
@@ -54,8 +79,8 @@ const WallProperties = () => {
             <p className="mr-2">x: </p>
             <input
               type="number"
-              value={wall.x2}
-              onBlur={event => changeCoord(Property.x2, Types.WALLS, event, setEditorState)}
+              value={coordinates.x2}
+              onChange={event => handleChange(Property.x2, event)}
               className="w-2/3 outline-none bg-inherit border-b-2"
             />
           </div>
@@ -63,8 +88,8 @@ const WallProperties = () => {
             <p className="mr-2">y: </p>
             <input
               type="number"
-              value={wall.y2}
-              onBlur={event => changeCoord(Property.y2, Types.WALLS, event, setEditorState)}
+              value={coordinates.y2}
+              onChange={event => handleChange(Property.y2, event)}
               className="w-2/3 outline-none bg-inherit border-b-2"
             />
           </div>

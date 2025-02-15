@@ -1,17 +1,13 @@
 import {useEditorState} from "shared/hooks/useEditorState";
 import {changeCoord} from "../utils";
-import {Property, Types} from "../EditorState/types";
-import {useRef} from "react";
+import {BeaconType, Property, Types} from "../EditorState/types";
+import React, {useEffect, useRef, useState} from "react";
 
 const BeaconProperties = () => {
   const {editorState, setEditorState} = useEditorState();
   const selectedObject = editorState.getSelectedObject();
 
   const idInputRef = useRef<HTMLInputElement | null>(null);
-
-  if (!selectedObject) {
-    return <></>;
-  }
 
   const changeBluetoothId = () => setEditorState(prevState => {
     const newState = prevState.copy();
@@ -27,7 +23,34 @@ const BeaconProperties = () => {
     return newState;
   });
 
-  const beacon = editorState.getCurrentFloor().objects[Types.BEACONS][selectedObject.index];
+  let beacon: BeaconType;
+  if (selectedObject) {
+    beacon = editorState.getCurrentFloor().objects[Types.BEACONS][selectedObject.index];
+  } else {
+    beacon = {ID: "", x: 0, y: 0};
+  }
+
+  const [beaconProperties, setBeaconProperties] = useState({
+    x: beacon.x,
+    y: beacon.y,
+  });
+
+  useEffect(() => {
+    setBeaconProperties({
+      x: beacon.x,
+      y: beacon.y
+    });
+  }, [beaconProperties]);
+
+  const handleChange = (property: Property, event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+    setBeaconProperties((prev) => ({...prev, [property]: value}));
+    changeCoord(property, Types.BEACONS, event, setEditorState);
+  };
+
+  if (!selectedObject) {
+    return <></>;
+  }
 
   return <>
     <div className="flex justify-center w-full">
@@ -40,8 +63,8 @@ const BeaconProperties = () => {
         <p className="mr-2">x: </p>
         <input
           type="number"
-          defaultValue={beacon.x}
-          onBlur={event => changeCoord(Property.x, Types.BEACONS, event, setEditorState)}
+          value={beaconProperties.x}
+          onChange={event => handleChange(Property.x, event)}
           className="w-2/3 outline-none bg-inherit border-b-2"
         />
       </div>
@@ -49,8 +72,8 @@ const BeaconProperties = () => {
         <p className="mr-2">y: </p>
         <input
           type="number"
-          defaultValue={beacon.y}
-          onBlur={event => changeCoord(Property.y, Types.BEACONS, event, setEditorState)}
+          value={beaconProperties.y}
+          onChange={event => handleChange(Property.y, event)}
           className="w-2/3 outline-none bg-inherit border-b-2"
         />
       </div>
@@ -59,8 +82,8 @@ const BeaconProperties = () => {
       <p className="mr-2">Bluetooth ID:</p>
       <input
         ref={idInputRef}
-        defaultValue={beacon.ID}
-        onBlur={changeBluetoothId}
+        value={beacon.ID}
+        onChange={changeBluetoothId}
         className="w-2/3 outline-none bg-inherit border-b-2"
       />
     </div>

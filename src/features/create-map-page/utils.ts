@@ -149,7 +149,7 @@ export const changeCursor = (
 export const changeCoord = (
   coord: Property,
   objectType: ObjectType,
-  event: React.FocusEvent<HTMLInputElement>,
+  event: React.ChangeEvent<HTMLInputElement>,
   setEditorState: React.Dispatch<React.SetStateAction<EditorState>>,
 ) => setEditorState(prevState => {
   const newState = prevState.copy();
