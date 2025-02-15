@@ -28,7 +28,7 @@ class _LocationScreenState extends State<LocationScreen> {
   late StreamSubscription _scanSubscription;
 
   List<BeaconRssi> _detectedBeacons = [];
-  vm.Vector2 _position = vm.Vector2.zero();
+  vm.Vector2 _position = vm.Vector2(1, 7);
 
   Offset _dragOffset = Offset.zero;
   double _currentScale = 1.0;
@@ -36,7 +36,7 @@ class _LocationScreenState extends State<LocationScreen> {
 
   _LocationScreenState() {
     _scanner = BeaconScanner(_mapService);
-    _mapService.fetchMap("many_rooms"); // или еще можно "LOTS_of_rooms"
+    // _mapService.fetchMap("LOTS_of_rooms"); // или еще можно "LOTS_of_rooms"
   }
 
   void _startScanning() async {
@@ -130,6 +130,11 @@ class _LocationScreenState extends State<LocationScreen> {
       appBar: AppBar(title: const Text('BLE Indoor Navigation')),
       body: Column(
         children: [
+          NavigationPathWidget(
+            mapService: _mapService,
+            userPosition: _position,
+            onPathUpdated: _updateNavigationPath,
+          ),
           Expanded(
             child: Center(
               child: GestureDetector(
@@ -152,16 +157,11 @@ class _LocationScreenState extends State<LocationScreen> {
                         );
                       },
                     ),
-                    DebugPanelWidget(detectedBeacons: _detectedBeacons)
+                    // DebugPanelWidget(detectedBeacons: _detectedBeacons)
                   ],
                 ),
               ),
             ),
-          ),
-          NavigationPathWidget(
-            mapService: _mapService,
-            userPosition: _position,
-            onPathUpdated: _updateNavigationPath,
           ),
         ],
       ),

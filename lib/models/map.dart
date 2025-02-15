@@ -183,7 +183,7 @@ class MapModel {
   static bool _areNormalized(List<Wall> walls) {
     for (int i = 0; i < walls.length; i++) {
       for (int j = i + 1; j < walls.length; j++) {
-        if (!_areCollinear(walls[i], walls[j])) continue;
+        if (!_areWallsCollinear(walls[i], walls[j])) continue;
 
         final wi = [
           vm.Vector2(walls[i].startX, walls[i].startY),
@@ -206,7 +206,7 @@ class MapModel {
     return true;
   }
 
-  static bool _areCollinear(Wall wall1, Wall wall2) {
+  static bool _areWallsCollinear(Wall wall1, Wall wall2) {
     final k1 = (wall1.endY - wall1.startY) / (wall1.endX - wall1.startX);
     final k2 = (wall2.endY - wall2.startY) / (wall2.endX - wall2.startX);
     return k1 == k2;
@@ -221,7 +221,7 @@ class MapModel {
 
       for (int i = 0; i < wallsToNormalize.length; i++) {
         for (int j = i + 1; j < wallsToNormalize.length; j++) {
-          if (!_areCollinear(wallsToNormalize[i], wallsToNormalize[j])) {
+          if (!_areWallsCollinear(wallsToNormalize[i], wallsToNormalize[j])) {
             continue;
           }
 
