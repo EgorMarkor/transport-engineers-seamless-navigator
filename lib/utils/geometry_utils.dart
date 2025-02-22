@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:latlong2/latlong.dart';
 import "package:vector_math/vector_math.dart" as vm;
 
 const EPSILON = 0.000001;
@@ -132,4 +133,46 @@ bool doLinesIntersect(
           (wall.first.y - y).abs() < EPSILON) ||
       ((wall.second.x - x).abs() < EPSILON &&
           (wall.second.y - y).abs() < EPSILON));
+}
+
+bool isPointCloseToBounds(
+  vm.Vector2 point,
+  List<LineSegment> bounds,
+  double treshold,
+) {
+  for (final line in bounds) {
+    final lineVector = line.second - line.first;
+    final t = (point - line.first).dot(lineVector) / lineVector.length2;
+    final projectedPoint = line.first + lineVector * t;
+
+    if ((point - projectedPoint).length <= treshold) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+double sphericalDistance(LatLng start, LatLng end) {
+  const double radius = 6371; // Radius of the Earth in kilometers
+
+  // Convert degrees to radians
+  double lat1Rad = start.latitude * pi / 180;
+  double lon1Rad = start.longitude * pi / 180;
+  double lat2Rad = end.latitude * pi / 180;
+  double lon2Rad = end.longitude * pi / 180;
+
+  // Differences in coordinates
+  double deltaLat = lat2Rad - lat1Rad;
+  double deltaLon = lon2Rad - lon1Rad;
+
+  // Haversine formula
+  double a = sin(deltaLat / 2) * sin(deltaLat / 2) +
+      cos(lat1Rad) * cos(lat2Rad) * sin(deltaLon / 2) * sin(deltaLon / 2);
+  double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+
+  // Distance in kilometers
+  double distance = radius * c;
+
+  return distance;
 }

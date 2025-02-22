@@ -26,10 +26,10 @@ class DynamicKalmanFilter {
     vm.Matrix4? initialCovariance,
     vm.Matrix4? processNoise,
     vm.Matrix2? measurementNoise,
-  }) : state = initialState ?? vm.Vector4.zero(),
+  })  : state = initialState ?? vm.Vector4.zero(),
         covariance = initialCovariance ?? vm.Matrix4.identity() * 1.0,
         Q = processNoise ?? vm.Matrix4.identity() * 0.001,
-        R = measurementNoise ?? vm.Matrix2.identity() * 1.0,
+        R = measurementNoise ?? vm.Matrix2.identity() * 1.5,
         F = vm.Matrix4.identity() {
     // Set up F for constant velocity:
     // F = [ [1, 0, dt, 0],

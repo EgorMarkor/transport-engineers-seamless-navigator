@@ -26,4 +26,8 @@ class MapService extends ChangeNotifier {
 
     return null;
   }
+
+  void clear() {
+    currentMap = null;
+  }
 }

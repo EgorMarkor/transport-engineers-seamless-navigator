@@ -167,7 +167,7 @@ class _NavigationPathWidgetState extends State<NavigationPathWidget> {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(4.0),
           child: DropdownButton<NavNode>(
             hint: const Text("Место назначения"),
             value: destination,

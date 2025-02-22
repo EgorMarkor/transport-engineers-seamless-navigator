@@ -4,16 +4,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:seamless_navigation/models/navigation_graph.dart';
 import 'package:seamless_navigation/services/map_service.dart';
+import 'package:seamless_navigation/utils/geometry_utils.dart';
+import 'package:seamless_navigation/widgets/boundary_popup.dart';
 import 'package:seamless_navigation/widgets/navigation_path.dart';
 import 'package:vector_math/vector_math.dart' as vm;
 import '../models/beacon_rssi.dart';
 import '../services/beacon_scanner.dart';
 import '../services/kalman_filter.dart';
-import '../widgets/debug_panel.dart';
 import '../widgets/location_painter.dart';
 
 class LocationScreen extends StatefulWidget {
-  const LocationScreen({super.key});
+  final void Function(bool) setNavigationMode;
+
+  const LocationScreen({
+    super.key,
+    required this.setNavigationMode,
+  });
 
   @override
   State<LocationScreen> createState() => _LocationScreenState();
@@ -27,8 +33,7 @@ class _LocationScreenState extends State<LocationScreen> {
   late BeaconScanner _scanner;
   late StreamSubscription _scanSubscription;
 
-  List<BeaconRssi> _detectedBeacons = [];
-  vm.Vector2 _position = vm.Vector2(1, 7);
+  vm.Vector2 _position = vm.Vector2.zero();
 
   Offset _dragOffset = Offset.zero;
   double _currentScale = 1.0;
@@ -50,22 +55,13 @@ class _LocationScreenState extends State<LocationScreen> {
     );
 
     _scanSubscription = _scanner.scanBeacons().listen((beacons) {
-      setState(() => _detectedBeacons = beacons);
-
-      if (beacons.length < 3) {
-        return;
-      }
+      if (beacons.length < 3) return;
 
       final measurement = _trilaterate(beacons[0], beacons[1], beacons[2]);
       _filter.predict();
       _filter.update(measurement);
       setState(() => _position = vm.Vector2(_filter.state.x, _filter.state.y));
     });
-  }
-
-  void _stopScanning() {
-    _scanSubscription.cancel();
-    FlutterBluePlus.stopScan();
   }
 
   vm.Vector2 _trilaterate(BeaconRssi b1, BeaconRssi b2, BeaconRssi b3) {
@@ -114,7 +110,8 @@ class _LocationScreenState extends State<LocationScreen> {
 
   @override
   void dispose() {
-    _stopScanning();
+    _scanSubscription.cancel();
+    FlutterBluePlus.stopScan();
     super.dispose();
   }
 
@@ -126,10 +123,25 @@ class _LocationScreenState extends State<LocationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    bool showBoundaryPopup = false;
+
+    if (_mapService.currentMap?.bounds != null) {
+      showBoundaryPopup = isPointCloseToBounds(
+        _position,
+        _mapService.currentMap!.bounds,
+        1,
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(title: const Text('BLE Indoor Navigation')),
       body: Column(
         children: [
+          if (showBoundaryPopup)
+            BoundaryPopupWidget(
+              onPress: () => widget.setNavigationMode(false),
+              labelText: "Выходите на улицу?",
+            ),
           NavigationPathWidget(
             mapService: _mapService,
             userPosition: _position,
@@ -157,7 +169,6 @@ class _LocationScreenState extends State<LocationScreen> {
                         );
                       },
                     ),
-                    // DebugPanelWidget(detectedBeacons: _detectedBeacons)
                   ],
                 ),
               ),

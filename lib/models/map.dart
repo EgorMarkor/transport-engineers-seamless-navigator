@@ -13,7 +13,7 @@ class MapModel {
   final List<Wall> walls;
   final List<Door> doors;
 
-  late List<vm.Vector2> bounds;
+  late List<LineSegment> bounds;
   late NavigationGraph navGraph;
 
   MapModel({
@@ -140,44 +140,33 @@ class MapModel {
     }).toList();
   }
 
-  static List<vm.Vector2> _getBounds(List<Wall> walls) {
-    List<vm.Vector2> points = [];
+  static List<LineSegment> _getBounds(List<Wall> walls) {
+    if (walls.isEmpty) return [];
 
-    for (final wall in walls) {
-      points.add(vm.Vector2(wall.startX, wall.startY));
-      points.add(vm.Vector2(wall.endX, wall.endY));
-    }
+    List<vm.Vector2> points = walls
+        .expand((w) => [
+              vm.Vector2(w.startX, w.startY),
+              vm.Vector2(w.endX, w.endY),
+            ])
+        .toList();
 
-    points = points.toSet().toList();
+    final bottomLeft = points.reduce(
+      (a, b) => vm.Vector2(min(a.x, b.x), min(a.y, b.y)),
+    );
 
-    points.sort((a, b) {
-      if (a.y != b.y) return a.y.compareTo(b.y);
-      return a.x.compareTo(b.x);
-    });
+    final topRight = points.reduce(
+      (a, b) => vm.Vector2(max(a.x, b.x), max(a.y, b.y)),
+    );
 
-    final pivot = points.first;
+    final topLeft = vm.Vector2(bottomLeft.x, topRight.y);
+    final bottomRight = vm.Vector2(topRight.x, bottomLeft.y);
 
-    points.sort((a, b) {
-      if (a == pivot) return -1;
-      if (b == pivot) return 1;
-      double angleA = atan2(a.y - pivot.y, a.x - pivot.x);
-      double angleB = atan2(b.y - pivot.y, b.x - pivot.x);
-      return angleA.compareTo(angleB);
-    });
-
-    double cross(vm.Vector2 o, vm.Vector2 a, vm.Vector2 b) {
-      return (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
-    }
-
-    List<vm.Vector2> hull = [];
-    for (var point in points) {
-      while (hull.length >= 2 &&
-          cross(hull[hull.length - 2], hull[hull.length - 1], point) <= 0) {
-        hull.removeLast();
-      }
-      hull.add(point);
-    }
-    return hull;
+    return [
+      LineSegment(bottomLeft, topLeft),
+      LineSegment(topLeft, topRight),
+      LineSegment(topRight, bottomRight),
+      LineSegment(bottomRight, bottomLeft),
+    ];
   }
 
   static bool _areNormalized(List<Wall> walls) {
