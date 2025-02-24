@@ -121,6 +121,10 @@ export default class EditorState {
     this.getCurrentFloor().objects[Types.BEACONS][beaconIndex].ID = newID;
   }
 
+  setPointOfInterestDescription(pofIndex: number, newDescription: string) {
+    this.getCurrentFloor().objects[Types.POINTS_OF_INTEREST][pofIndex].description = newDescription;
+  }
+
   clearSelection() {
     this.data.currentState.selectedObject = null;
   }

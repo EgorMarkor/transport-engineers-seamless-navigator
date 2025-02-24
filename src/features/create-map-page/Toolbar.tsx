@@ -110,6 +110,9 @@ const Toolbar = () => {
             <p onClick={() => changeTool(Types.STAIRS_UP)}>Лестница вверх</p>
             <p onClick={() => changeTool(Types.STAIRS_DOWN)}>Лестница вниз</p>
           </div>
+          <div className="mt-2">
+            <p onClick={() => changeTool(Types.POINTS_OF_INTEREST)}>Точка интереса</p>
+          </div>
         </div>
       </div>
 

@@ -9,6 +9,7 @@ export const enum Types {
   DOORS = "doors",
   STAIRS_UP = "stairsUp",
   STAIRS_DOWN = "stairsDown",
+  POINTS_OF_INTEREST = "pointsOfInterest",
 }
 
 export const enum Axis {
@@ -81,6 +82,12 @@ export interface StairsDirectionType {
   y2: number;
 }
 
+export interface PointOfInterestType {
+  x: number;
+  y: number;
+  description: string;
+}
+
 
 export interface ObjectsType {
   [Types.WALLS]: WallType[];
@@ -88,6 +95,7 @@ export interface ObjectsType {
   [Types.DOORS]: DoorType[];
   [Types.STAIRS_UP]: StairsType[];
   [Types.STAIRS_DOWN]: StairsType[];
+  [Types.POINTS_OF_INTEREST]: PointOfInterestType[];
 }
 
 export type Object =
@@ -101,7 +109,8 @@ export type ObjectType =
   Types.BEACONS |
   Types.DOORS |
   Types.STAIRS_UP |
-  Types.STAIRS_DOWN;
+  Types.STAIRS_DOWN |
+  Types.POINTS_OF_INTEREST;
 
 export interface FloorType {
   objects: ObjectsType;

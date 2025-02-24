@@ -106,6 +106,19 @@ const generateGeoJSON = (floors: FloorsType): GeoJSON => {
         },
       },
     }));
+
+    objects[Types.POINTS_OF_INTEREST].forEach(pof => output.features.push({
+      "type": "Feature",
+      "properties": {
+        "objectType": "pointOfInterest",
+        "floor": floorNumber,
+        "description": pof.description,
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [pof.x, pof.y],
+      },
+    }));
   });
 
   return output;

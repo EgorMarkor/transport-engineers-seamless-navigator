@@ -9,6 +9,7 @@ import WallsLayer from "./CanvasLayers/WallsLayer";
 import BeaconsLayer from "./CanvasLayers/BeaconsLayer";
 import DoorsLayer from "./CanvasLayers/DoorsLayer";
 import StairsLayer from "./CanvasLayers/StairsLayer";
+import PointsOfInterestLayer from "./CanvasLayers/PointsOfInterestLayer";
 
 const EditorCanvas = () => {
   const {editorState, setEditorState} = useEditorState();
@@ -169,6 +170,7 @@ const EditorCanvas = () => {
       <BeaconsLayer/>
       <DoorsLayer/>
       <StairsLayer/>
+      <PointsOfInterestLayer/>
     </Stage>
   );
 };

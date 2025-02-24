@@ -4,6 +4,7 @@ import WallProperties from "./ObjectsProperties/WallProperties";
 import BeaconProperties from "./ObjectsProperties/BeaconProperties";
 import DoorProperties from "./ObjectsProperties/DoorProperties";
 import StairsProperties from "./ObjectsProperties/StairsProperties";
+import PointOfInterestProperties from "./ObjectsProperties/PointOfInterestProperties";
 
 const PropertiesList = () => {
   const {editorState, setEditorState} = useEditorState();
@@ -61,6 +62,7 @@ const PropertiesList = () => {
         {selectedObjectType === Types.BEACONS && <BeaconProperties/>}
         {selectedObjectType === Types.DOORS && <DoorProperties/>}
         {[Types.STAIRS_UP, Types.STAIRS_DOWN].includes(selectedObjectType) && <StairsProperties/>}
+        {selectedObjectType === Types.POINTS_OF_INTEREST && <PointOfInterestProperties/>}
       </div>
 
       <button

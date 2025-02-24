@@ -7,6 +7,7 @@ export const EMPTY_FLOOR: FloorType = {
     [Types.DOORS]: [],
     [Types.STAIRS_UP]: [],
     [Types.STAIRS_DOWN]: [],
+    [Types.POINTS_OF_INTEREST]: [],
   },
 };
 
@@ -68,4 +69,5 @@ export const COLORS = Object.freeze({
     bounds: "rgb(240, 195, 0)",
     direction: "rgb(255, 50, 50)",
   },
+  [Types.POINTS_OF_INTEREST]: "rgb(38,217,77)",
 });

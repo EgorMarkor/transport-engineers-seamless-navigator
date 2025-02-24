@@ -23,8 +23,10 @@ const BeaconProperties = () => {
     return newState;
   });
 
+  const selectedObjectType = selectedObject?.type;
+
   let beacon: BeaconType;
-  if (selectedObject) {
+  if (selectedObject && selectedObjectType === Types.BEACONS) {
     beacon = editorState.getCurrentFloor().objects[Types.BEACONS][selectedObject.index];
   } else {
     beacon = {ID: "", x: 0, y: 0};
@@ -40,7 +42,7 @@ const BeaconProperties = () => {
       x: beacon.x,
       y: beacon.y
     });
-  }, [beaconProperties]);
+  }, []);
 
   const handleChange = (property: Property, event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
@@ -48,7 +50,7 @@ const BeaconProperties = () => {
     changeCoord(property, Types.BEACONS, event, setEditorState);
   };
 
-  if (!selectedObject) {
+  if (selectedObjectType !== Types.BEACONS) {
     return <></>;
   }
 
@@ -82,7 +84,7 @@ const BeaconProperties = () => {
       <p className="mr-2">Bluetooth ID:</p>
       <input
         ref={idInputRef}
-        value={beacon.ID}
+        value={beacon?.ID}
         onChange={changeBluetoothId}
         className="w-2/3 outline-none bg-inherit border-b-2"
       />
