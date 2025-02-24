@@ -21,3 +21,11 @@ class Door {
 
   const Door(this.x, this.y);
 }
+
+class PointOfInterest {
+  final double x;
+  final double y;
+  final String description;
+
+  const PointOfInterest(this.x, this.y, this.description);
+}

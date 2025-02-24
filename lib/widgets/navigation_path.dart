@@ -171,13 +171,10 @@ class _NavigationPathWidgetState extends State<NavigationPathWidget> {
           child: DropdownButton<NavNode>(
             hint: const Text("Место назначения"),
             value: destination,
-            items: navGraph.nodes
+            items: navGraph.interestingNodes
                 .map((node) => DropdownMenuItem<NavNode>(
                       value: node,
-                      child: Text(
-                        '(${node.position.x.toStringAsFixed(1)}, '
-                        '${node.position.y.toStringAsFixed(1)})',
-                      ),
+                      child: Text(node.description ?? ""),
                     ))
                 .toList(),
             onChanged: (node) {

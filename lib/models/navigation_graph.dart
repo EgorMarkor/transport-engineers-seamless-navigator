@@ -6,8 +6,12 @@ import 'package:vector_math/vector_math.dart' as vm;
 
 class NavigationGraph {
   final List<NavNode> nodes;
+  final List<NavNode> interestingNodes;
 
-  NavigationGraph({required this.nodes});
+  NavigationGraph({
+    required this.nodes,
+    required this.interestingNodes,
+  });
 
   List<NavNode> findPath(NavNode start, NavNode end) {
     final openSet = SplayTreeSet<_NodeFScore>((a, b) {
@@ -62,10 +66,17 @@ class NavigationGraph {
     return totalPath;
   }
 
-  factory NavigationGraph.build(List<Wall> walls, List<Door> doors) {
-    final nodes = doors
+  factory NavigationGraph.build(
+    List<Wall> walls,
+    List<Door> doors,
+    List<PointOfInterest> pois,
+  ) {
+    final doorNodes = doors
         .map((door) => NavNode(position: vm.Vector2(door.x, door.y)))
         .toList();
+    final poiNodes = pois.map((poi) => NavNode(
+        position: vm.Vector2(poi.x, poi.y), description: poi.description)).toList();
+    final nodes = [...doorNodes, ...poiNodes];
 
     for (int i = 0; i < nodes.length; i++) {
       for (int j = i + 1; j < nodes.length; j++) {
@@ -95,16 +106,21 @@ class NavigationGraph {
       }
     }
 
-    return NavigationGraph(nodes: nodes);
+    return NavigationGraph(
+      nodes: nodes,
+      interestingNodes: poiNodes,
+    );
   }
 }
 
 class NavNode {
   final vm.Vector2 position;
   final List<NavEdge> edges;
+  final String? description;
 
   NavNode({
     required this.position,
+    this.description,
     List<NavEdge>? edges,
   }) : edges = edges ?? [];
 }

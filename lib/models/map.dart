@@ -12,6 +12,7 @@ class MapModel {
   final List<Beacon> beacons;
   final List<Wall> walls;
   final List<Door> doors;
+  final List<PointOfInterest> pointsOfInterest;
 
   late List<LineSegment> bounds;
   late NavigationGraph navGraph;
@@ -22,6 +23,7 @@ class MapModel {
     required this.features,
     required this.walls,
     required this.beacons,
+    required this.pointsOfInterest,
     required this.doors,
     required this.bounds,
     required this.navGraph,
@@ -137,6 +139,20 @@ class MapModel {
       final x = (coordinates[0] as num).toDouble();
       final y = (coordinates[1] as num).toDouble();
       return Door(x, y);
+    }).toList();
+  }
+
+  static List<PointOfInterest> _getPointsOfInterest(List<Feature> features) {
+    return features
+        .where((feature) =>
+            feature.properties['objectType'] == 'pointOfInterest' &&
+            feature.properties.containsKey('description'))
+        .map((feature) {
+      final description = feature.properties['description'] as String;
+      final coordinates = feature.geometry.coordinates as List<dynamic>;
+      final x = (coordinates[0] as num).toDouble();
+      final y = (coordinates[1] as num).toDouble();
+      return PointOfInterest(x, y, description);
     }).toList();
   }
 
@@ -267,9 +283,10 @@ class MapModel {
     final walls = _normalizeWalls(_getWalls(translatedFeatures));
     final beacons = _getBeacons(translatedFeatures);
     final doors = _getDoors(translatedFeatures);
+    final pointsOfInterest = _getPointsOfInterest(translatedFeatures);
 
     final bounds = _getBounds(walls);
-    final navGraph = NavigationGraph.build(walls, doors);
+    final navGraph = NavigationGraph.build(walls, doors, pointsOfInterest);
 
     return MapModel(
       type: json['type'] as String,
@@ -279,6 +296,7 @@ class MapModel {
       beacons: beacons,
       bounds: bounds,
       doors: doors,
+      pointsOfInterest: pointsOfInterest,
       navGraph: navGraph,
     );
   }
