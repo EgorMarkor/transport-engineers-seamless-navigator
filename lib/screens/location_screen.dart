@@ -12,6 +12,7 @@ import '../models/beacon_rssi.dart';
 import '../services/beacon_scanner.dart';
 import '../services/kalman_filter.dart';
 import '../widgets/location_painter.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 
 class LocationScreen extends StatefulWidget {
   final void Function(bool) setNavigationMode;
@@ -26,6 +27,7 @@ class LocationScreen extends StatefulWidget {
 }
 
 class _LocationScreenState extends State<LocationScreen> {
+  final FlutterTts flutterTts = FlutterTts();
   final MapService _mapService = MapService();
   List<NavNode> _currentPath = [];
 
@@ -165,6 +167,7 @@ class _LocationScreenState extends State<LocationScreen> {
                             scale: _currentScale,
                             offset: _dragOffset,
                             navigationPath: _currentPath,
+                            flutterTts: flutterTts,
                           ),
                         );
                       },

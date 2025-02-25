@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:seamless_navigation/models/map.dart';
 import 'package:seamless_navigation/models/navigation_graph.dart';
 import 'package:seamless_navigation/utils/grid_utils.dart';
@@ -10,8 +11,8 @@ class LocationPainter extends CustomPainter {
   final double scale; // Scale constant
   final Offset offset;
   final List<NavNode> navigationPath;
-  /// Animation value used to offset the dash pattern; update this via an AnimationController.
   final double animationValue;
+  final FlutterTts flutterTts;
 
   LocationPainter(
     this.position,
@@ -20,7 +21,41 @@ class LocationPainter extends CustomPainter {
     this.offset = Offset.zero,
     this.navigationPath = const [],
     this.animationValue = 0.0,
+    required this.flutterTts,
   });
+
+  vm.Vector2 getDirection(vm.Vector2 from, vm.Vector2 to) {
+    return (to - from).normalized();
+  }
+
+  double calculateAngle(vm.Vector2 from, vm.Vector2 to) {
+    final dot = from.dot(to);
+    final cross = from.x * to.y - from.y * to.x;
+    return cross >= 0 ? dot : -dot;
+  }
+
+void checkAndAnnounceTurn() {
+  if (navigationPath.length < 2) return; 
+
+  final currentDirection = getDirection(position, navigationPath[0].position);
+  final nextDirection = getDirection(navigationPath[0].position, navigationPath[1].position);
+
+  final angle = calculateAngle(currentDirection, nextDirection);
+
+
+  final distanceToNextTurn = (navigationPath[0].position - position).length;
+
+  const distanceThreshold = 1.0; 
+
+  if (distanceToNextTurn < distanceThreshold) {
+    if (angle > 0.5) {
+      flutterTts.speak("Turn left");
+    } else if (angle < -0.5) {
+      flutterTts.speak("Turn right");
+    }
+  }
+}
+
 
   void _drawUser(Canvas canvas, Size size, GridUtils gridUtils) {
     final scaledGridSize = gridUtils.getScaledGridSize();
@@ -136,9 +171,8 @@ class LocationPainter extends CustomPainter {
           ..style = PaintingStyle.fill,
       );
 
-          // Prepare the text (e.g., using beacon name or a fixed label)
       final textSpan = TextSpan(
-        text: poi.description, // Replace with beacon.label if available
+        text: poi.description,
         style: const TextStyle(
           fontSize: 12.0,
           color: Colors.black,
@@ -153,20 +187,16 @@ class LocationPainter extends CustomPainter {
       
       textPainter.layout();
       
-      // Position the text under the circle.
-      // Adjust the vertical offset as needed.
       final textOffset = pos + Offset(-textPainter.width / 2, scale * 5 + 4);
       
       textPainter.paint(canvas, textOffset);
     }
   }
 
-  /// Draws the navigation path as a continuously animated dashed line.
   void _drawNavigationPath(Canvas canvas, Size size, GridUtils gridUtils) {
     if (map == null || navigationPath.isEmpty) return;
     final scaledGridSize = gridUtils.getScaledGridSize();
 
-    // Build the full path from the current position through all navigation nodes.
     final path = Path();
     path.moveTo(
       position.x * scaledGridSize + offset.dx,
@@ -179,7 +209,6 @@ class LocationPainter extends CustomPainter {
       );
     }
 
-    // Define the dash pattern.
     const double dashLength = 10.0;
     const double gapLength = 10.0;
     final double patternLength = dashLength + gapLength;
@@ -189,9 +218,7 @@ class LocationPainter extends CustomPainter {
       ..strokeWidth = 3.0
       ..style = PaintingStyle.stroke;
 
-    // Compute the path metrics and animate the dash pattern offset.
     for (final metric in path.computeMetrics()) {
-      // Use animationValue (modulo patternLength) to cycle the dash pattern.
       double distance = animationValue % patternLength;
       while (distance < metric.length) {
         final double start = distance;
@@ -201,6 +228,8 @@ class LocationPainter extends CustomPainter {
         distance += patternLength;
       }
     }
+
+    checkAndAnnounceTurn();
   }
 
   @override
