@@ -15,6 +15,7 @@ func Setup(env *bootstrap.Env, timeout time.Duration, db *mongo.Database, redis 
 	NewSignupRouter(env, timeout, db, publicGroup)
 	NewLoginRouter(env, timeout, db, publicGroup)
 	NewRefreshTokenRouter(env, timeout, db, publicGroup)
+	NewMapByAddressRouter(env, timeout, db, redis, publicGroup)
 
 	privateGroup := gin.Group("")
 	privateGroup.Use(middleware.JwtAuthMiddleware(env.AccessTokenSecret))
