@@ -15,7 +15,7 @@ const Toolbar = () => {
   const saveMap = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
 
-    const mapJSON = generateGeoJSON(editorState.getFloors());
+    const mapJSON = generateGeoJSON(editorState.getFloors(), editorState.getGlobalFields());
 
     Api.post("/map", mapJSON)
       .then(_ => navigate("/success"))

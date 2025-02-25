@@ -1,8 +1,12 @@
-import {FloorsType, Types} from "./EditorState/types";
+import {FloorsType, GlobalFieldsType, Types} from "./EditorState/types";
 
 interface GeoJSON {
   type: "FeatureCollection";
   features: Feature[];
+  properties: {
+    address: string;
+    azimuth: number;
+  };
 }
 
 interface Feature {
@@ -31,9 +35,13 @@ type Geometry =
   };
 };
 
-const generateGeoJSON = (floors: FloorsType): GeoJSON => {
+const generateGeoJSON = (floors: FloorsType, globalFields: GlobalFieldsType): GeoJSON => {
   const output: GeoJSON = {
     "type": "FeatureCollection",
+    "properties": {
+      "address": globalFields.address,
+      "azimuth": globalFields.azimuth,
+    },
     "features": [],
   };
 
@@ -73,6 +81,7 @@ const generateGeoJSON = (floors: FloorsType): GeoJSON => {
       "properties": {
         "objectType": "door",
         "floor": floorNumber,
+        "isOuter": door.isOuter,
       },
       "geometry": {
         "type": "Point",

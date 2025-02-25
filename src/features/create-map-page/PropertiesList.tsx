@@ -1,14 +1,17 @@
 import {useEditorState} from "shared/hooks/useEditorState";
-import {Types} from "./EditorState/types";
+import {Property, Types} from "./EditorState/types";
 import WallProperties from "./ObjectsProperties/WallProperties";
 import BeaconProperties from "./ObjectsProperties/BeaconProperties";
 import DoorProperties from "./ObjectsProperties/DoorProperties";
 import StairsProperties from "./ObjectsProperties/StairsProperties";
 import PointOfInterestProperties from "./ObjectsProperties/PointOfInterestProperties";
+import React, {useRef} from "react";
 
 const PropertiesList = () => {
   const {editorState, setEditorState} = useEditorState();
   const selectedObjectType = editorState.getSelectedObject()?.type;
+
+  const globalFields =  editorState.getGlobalFields();
 
   const deleteSelectedObject = () => setEditorState(prevState => {
     const newState = prevState.copy();
@@ -47,10 +50,41 @@ const PropertiesList = () => {
     return newState;
   });
 
+  const handleAddress = (newAddress: string) => setEditorState(prevState => {
+    const newState = prevState.copy();
+    newState.data.globalFields.address = newAddress;
+    return newState;
+  });
+
+  const handleAzimuth = (newAzimuth: number) => setEditorState(prevState => {
+    const newState = prevState.copy();
+    newState.data.globalFields.azimuth = parseInt(azimuthInputRef.current?.value || "0");
+    return newState;
+  });
+
+  const azimuthInputRef = useRef<HTMLInputElement | null>(null);
+
   if (!selectedObjectType) {
     return (
-      <div className="flex flex-col items-start w-[15vw] h-[90.5vh] ml-4">
-        <p className="self-center text-center">Выберите объект для редактирования его свойств</p>
+      <div className="flex flex-col items-start w-[15vw] h-[80vh] ml-4">
+        <div className="flex flex-row w-1/2">
+          <p className="mr-2">Адрес</p>
+          <input
+            defaultValue={globalFields.address}
+            onChange={event => handleAddress(event.target.value)}
+            className="w-2/3 outline-none bg-inherit border-b-2"
+          />
+        </div>
+        <div className="flex flex-row w-1/2">
+          <p className="mr-2">Азимут</p>
+          <input
+            type="number"
+            ref={azimuthInputRef}
+            value={globalFields.azimuth}
+            onChange={event => handleAzimuth(parseInt(event.target.value))}
+            className="w-2/3 outline-none bg-inherit border-b-2"
+          />
+        </div>
       </div>
     );
   }

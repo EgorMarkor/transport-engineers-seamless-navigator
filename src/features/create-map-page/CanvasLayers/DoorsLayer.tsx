@@ -24,6 +24,7 @@ const DoorsLayer = () => {
     const isOccupied = doors.some(door => door.x === newDoor.x && door.y === newDoor.y);
 
     if (!isOccupied) {
+      // @ts-ignore
       newState.addNewObject(newDoor, Types.DOORS);
     }
 

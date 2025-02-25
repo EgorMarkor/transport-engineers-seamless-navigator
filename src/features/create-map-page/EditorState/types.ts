@@ -54,6 +54,7 @@ export interface BeaconType {
 export interface DoorType {
   x: number;
   y: number;
+  isOuter: boolean;
 }
 
 export interface StairsType {
@@ -184,9 +185,15 @@ export interface EditorEventListenersType {
   onClick: ((event: KonvaEventObject<MouseEvent>) => void)[];
 }
 
+export interface GlobalFieldsType {
+  address: string;
+  azimuth: number;
+}
+
 export interface EditorDataType {
   constants: EditorConstantsType;
   floors: FloorsType;
+  globalFields: GlobalFieldsType;
   currentState: CurrentEditorStateType;
   undoStack: FloorsType[];
   redoStack: FloorsType[];

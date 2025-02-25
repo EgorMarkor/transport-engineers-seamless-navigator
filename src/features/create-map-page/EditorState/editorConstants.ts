@@ -24,6 +24,10 @@ export const EMPTY_EDITOR_DATA: EditorDataType = {
     WHEEL_SCALE_RATIO: 1.1,
   },
   floors: {},
+  globalFields: {
+    address: "",
+    azimuth: 0,
+  },
   currentState: {
     floor: "1",
     tool: Types.SELECT as ToolType,

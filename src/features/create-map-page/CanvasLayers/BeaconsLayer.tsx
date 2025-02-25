@@ -25,6 +25,7 @@ const BeaconsLayer = () => {
       .some(beacon => beacon.x === newBeacon.x && beacon.y === newBeacon.y);
 
     if (!isOccupied) {
+      // @ts-ignore
       newState.addNewObject(newBeacon, Types.BEACONS);
     }
 

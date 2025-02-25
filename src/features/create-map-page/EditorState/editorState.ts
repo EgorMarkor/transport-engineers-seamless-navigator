@@ -34,6 +34,7 @@ export default class EditorState {
     return new EditorState(this.data);
   }
 
+  getGlobalFields = () => this.data.globalFields;
   getCanvasWidth = () => this.data.constants.CANVAS_WIDTH;
   getCanvasHeight = () => this.data.constants.CANVAS_HEIGHT;
   getConstants = () => this.data.constants;
@@ -119,6 +120,10 @@ export default class EditorState {
 
   setBluetoothID(beaconIndex: number, newID: string) {
     this.getCurrentFloor().objects[Types.BEACONS][beaconIndex].ID = newID;
+  }
+
+  setDoorIsOuter(doorIndex: number, newValue: boolean) {
+    this.getCurrentFloor().objects[Types.DOORS][doorIndex].isOuter = newValue;
   }
 
   setPointOfInterestDescription(pofIndex: number, newDescription: string) {

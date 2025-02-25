@@ -18,14 +18,15 @@ const PointsOfInterestLayer = () => {
       return newState;
     }
 
-    const newBeacon = newState.screenToWorldCoords(cursorPosition);
+    const newPof = newState.screenToWorldCoords(cursorPosition);
 
     const isOccupied = newState
       .getObjectsOnCurrentFloor(Types.POINTS_OF_INTEREST)
-      .some(pof => pof.x === newBeacon.x && pof.y === newBeacon.y);
+      .some(pof => pof.x === newPof.x && pof.y === newPof.y);
 
     if (!isOccupied) {
-      newState.addNewObject(newBeacon, Types.POINTS_OF_INTEREST);
+      // @ts-ignore
+      newState.addNewObject(newPof, Types.POINTS_OF_INTEREST);
     }
 
     return newState;
