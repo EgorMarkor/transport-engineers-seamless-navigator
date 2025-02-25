@@ -16,7 +16,7 @@ type GeoJSON struct {
 type FeatureSetProperties struct {
 	CreatorID string `bson:"creatorID" json:"-"`
 	Address   string `bson:"address" json:"address" binding:"required"`
-	Azimuth   int    `bson:"azimuth" json:"azimuth" binding:"required"`
+	Azimuth   int    `bson:"azimuth" json:"azimuth"`
 }
 
 type Feature struct {

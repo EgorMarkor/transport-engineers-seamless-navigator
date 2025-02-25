@@ -138,3 +138,17 @@ func (repo *MapRepository) DeleteMapByBluetoothID(ctx context.Context, ID string
 
 	return nil
 }
+
+func (repo *MapRepository) GetMapByAddress(ctx context.Context, address string) (models.GeoJSON, error) {
+	var requestedMap models.GeoJSON
+
+	collection := repo.database.Collection(repo.collection)
+	err := collection.FindOne(ctx, bson.M{
+		"properties.address": address,
+	}).Decode(&requestedMap)
+	if err != nil {
+		return requestedMap, err
+	}
+
+	return requestedMap, err
+}
