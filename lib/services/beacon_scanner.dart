@@ -15,14 +15,11 @@ class BeaconScanner {
       final List<BeaconRssi> beacons = [];
 
       for (final result in results) {
-        final beaconName = result.advertisementData.localName;
+        final beaconName = result.device.id.id;
 
-        if (beaconName.isEmpty) {
-          continue;
-        }
-
-        if (knownBeacons.isEmpty && beaconName.contains("BLE")) {
+        if (knownBeacons.isEmpty) {
           final map = await mapService.fetchMap(beaconName);
+          print("bn: $beaconName");
           if (map != null) {
             knownBeacons = map.beacons;
           }
@@ -30,7 +27,7 @@ class BeaconScanner {
 
         final beacon = knownBeacons.firstWhere(
           (b) => beaconName == b.name,
-          orElse: () => const Beacon("", 0, 0),
+          orElse: () => const Beacon("", 0, 0, 0),
         );
 
         if (beacon.name.isEmpty) {
@@ -53,7 +50,7 @@ class BeaconScanner {
   }
 
   double _calculateDistance(int rssi, int txPower) {
-    const n = 15.0; // Path-loss exponent
+    const n = 2.0; // Path-loss exponent
     return pow(10, (txPower - rssi) / (10 * n)).toDouble();
   }
 }

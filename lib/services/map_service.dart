@@ -11,19 +11,15 @@ class MapService extends ChangeNotifier {
     final baseUrl = dotenv.env["SERVER_URL"];
     final url = Uri.parse('$baseUrl/map/$bleId');
 
-    try {
-      final response = await http.get(url);
+    final response = await http.get(url);
 
-      if (response.statusCode == 200) {
-        final jsonData = jsonDecode(response.body);
-        currentMap = MapModel.fromJson(jsonData);
-        notifyListeners();
-        return currentMap;
-      }
-    } catch (e) {
-      return null;
+    if (response.statusCode == 200) {
+      final jsonData = jsonDecode(response.body);
+      currentMap = MapModel.fromJson(jsonData);
+      notifyListeners();
+      return currentMap;
     }
-
+  
     return null;
   }
 

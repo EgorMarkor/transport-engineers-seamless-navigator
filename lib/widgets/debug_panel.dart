@@ -3,8 +3,9 @@ import '../models/beacon_rssi.dart';
 
 class DebugPanelWidget extends StatelessWidget {
   final List<BeaconRssi> detectedBeacons;
+  final double floor;
 
-  const DebugPanelWidget({super.key, required this.detectedBeacons});
+  const DebugPanelWidget({super.key, required this.detectedBeacons, required this.floor});
 
   @override
   Widget build(BuildContext context) {
@@ -32,11 +33,7 @@ class DebugPanelWidget extends StatelessWidget {
                 style: const TextStyle(color: Colors.white),
               ),
             ),
-            if (detectedBeacons.length < 3)
-              const Text(
-                'Need at least 3 beacons!',
-                style: TextStyle(color: Colors.red, fontSize: 12),
-              ),
+            Text("floor: $floor"),
           ],
         ),
       ),

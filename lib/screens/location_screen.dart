@@ -6,6 +6,7 @@ import 'package:seamless_navigation/models/navigation_graph.dart';
 import 'package:seamless_navigation/services/map_service.dart';
 import 'package:seamless_navigation/utils/geometry_utils.dart';
 import 'package:seamless_navigation/widgets/boundary_popup.dart';
+import 'package:seamless_navigation/widgets/debug_panel.dart';
 import 'package:seamless_navigation/widgets/navigation_path.dart';
 import 'package:vector_math/vector_math.dart' as vm;
 import '../models/beacon_rssi.dart';
@@ -34,10 +35,13 @@ class _LocationScreenState extends State<LocationScreen> {
   late StreamSubscription _scanSubscription;
 
   vm.Vector2 _position = vm.Vector2.zero();
+  double _currentFloor = 0;
 
   Offset _dragOffset = Offset.zero;
   double _currentScale = 1.0;
   double _initialScale = 1.0;
+
+  List<BeaconRssi> _detectedBeacons = [];
 
   _LocationScreenState() {
     _scanner = BeaconScanner(_mapService);
@@ -55,12 +59,19 @@ class _LocationScreenState extends State<LocationScreen> {
     );
 
     _scanSubscription = _scanner.scanBeacons().listen((beacons) {
+      setState(() {
+        _detectedBeacons = beacons;
+      });
+
       if (beacons.length < 3) return;
 
       final measurement = _trilaterate(beacons[0], beacons[1], beacons[2]);
       _filter.predict();
       _filter.update(measurement);
-      setState(() => _position = vm.Vector2(_filter.state.x, _filter.state.y));
+      setState(() {
+        _position = vm.Vector2(_filter.state.x, _filter.state.y);
+        _currentFloor = beacons[0].beacon.floor;
+      });
     });
   }
 
@@ -134,7 +145,7 @@ class _LocationScreenState extends State<LocationScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('BLE Indoor Navigation')),
+      appBar: AppBar(title: const Text('Путь к платформе')),
       body: Column(
         children: [
           if (showBoundaryPopup)
@@ -147,6 +158,7 @@ class _LocationScreenState extends State<LocationScreen> {
             userPosition: _position,
             onPathUpdated: _updateNavigationPath,
           ),
+          DebugPanelWidget(detectedBeacons: _detectedBeacons, floor: _currentFloor),
           Expanded(
             child: Center(
               child: GestureDetector(
@@ -161,6 +173,7 @@ class _LocationScreenState extends State<LocationScreen> {
                           size: Size.infinite,
                           painter: LocationPainter(
                             _position,
+                            _currentFloor,
                             _mapService.currentMap,
                             scale: _currentScale,
                             offset: _dragOffset,

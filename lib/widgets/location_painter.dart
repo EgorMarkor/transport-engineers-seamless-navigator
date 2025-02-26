@@ -10,11 +10,13 @@ class LocationPainter extends CustomPainter {
   final double scale; // Scale constant
   final Offset offset;
   final List<NavNode> navigationPath;
+  final double floor;
   /// Animation value used to offset the dash pattern; update this via an AnimationController.
   final double animationValue;
 
   LocationPainter(
     this.position,
+    this.floor,
     this.map, {
     this.scale = 10,
     this.offset = Offset.zero,
@@ -54,7 +56,7 @@ class LocationPainter extends CustomPainter {
   void _drawBeacons(Canvas canvas, Size size, GridUtils gridUtils) {
     if (map == null) return;
     final scaledGridSize = gridUtils.getScaledGridSize();
-    for (final beacon in map!.beacons) {
+    for (final beacon in map!.beacons.where((b) => b.floor == floor)) {
       final pos = Offset(
         beacon.x * scaledGridSize + offset.dx,
         beacon.y * scaledGridSize + offset.dy,
@@ -72,7 +74,7 @@ class LocationPainter extends CustomPainter {
   void _drawWalls(Canvas canvas, Size size, GridUtils gridUtils) {
     if (map == null) return;
     final scaledGridSize = gridUtils.getScaledGridSize();
-    for (final wall in map!.walls) {
+    for (final wall in map!.walls.where((b) => b.floor == floor)) {
       final startPoint = Offset(
         wall.startX * scaledGridSize + offset.dx,
         wall.startY * scaledGridSize + offset.dy,
@@ -94,7 +96,7 @@ class LocationPainter extends CustomPainter {
   void _drawDoors(Canvas canvas, Size size, GridUtils gridUtils) {
     if (map == null) return;
     final scaledGridSize = gridUtils.getScaledGridSize();
-    for (final door in map!.doors) {
+    for (final door in map!.doors.where((b) => b.floor == floor)) {
       final coord = Offset(
         door.x * scaledGridSize + offset.dx,
         door.y * scaledGridSize + offset.dy,
@@ -123,7 +125,7 @@ class LocationPainter extends CustomPainter {
 
     final scaledGridSize = gridUtils.getScaledGridSize();
 
-    for (final poi in map!.pointsOfInterest) {
+    for (final poi in map!.pointsOfInterest.where((b) => b.floor == floor)) {
       final pos = Offset(
         poi.x * scaledGridSize + offset.dx,
         poi.y * scaledGridSize + offset.dy,
@@ -161,7 +163,6 @@ class LocationPainter extends CustomPainter {
     }
   }
 
-  /// Draws the navigation path as a continuously animated dashed line.
   void _drawNavigationPath(Canvas canvas, Size size, GridUtils gridUtils) {
     if (map == null || navigationPath.isEmpty) return;
     final scaledGridSize = gridUtils.getScaledGridSize();

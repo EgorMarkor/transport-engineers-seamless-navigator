@@ -33,21 +33,31 @@ class MapModel {
     double minX = double.infinity;
     double minY = double.infinity;
 
+    // First pass: determine minX and minY
     for (final feature in features) {
       final geometry = feature.geometry;
-
+      // For points and lines
       if (geometry.type == 'Point') {
         final coords = geometry.coordinates as List<dynamic>;
-
         final x = (coords[0] as num).toDouble();
         final y = (coords[1] as num).toDouble();
-
         if (x < minX) minX = x;
         if (y < minY) minY = y;
       } else if (geometry.type == 'LineString') {
         final coordsList = geometry.coordinates as List<dynamic>;
-
         for (final coords in coordsList) {
+          final x = (coords[0] as num).toDouble();
+          final y = (coords[1] as num).toDouble();
+          if (x < minX) minX = x;
+          if (y < minY) minY = y;
+        }
+      } else if (feature.properties['objectType'] == 'stairsUp' &&
+          geometry.bounds != null &&
+          geometry.direction != null) {
+        // Check all coordinates in bounds and direction
+        final List<dynamic> boundsCoords = geometry.bounds!.coordinates;
+        final List<dynamic> directionCoords = geometry.direction!.coordinates;
+        for (final coords in boundsCoords + directionCoords) {
           final x = (coords[0] as num).toDouble();
           final y = (coords[1] as num).toDouble();
           if (x < minX) minX = x;
@@ -56,37 +66,75 @@ class MapModel {
       }
     }
 
+    // Second pass: translate each feature
     return features.map((feature) {
       final geometry = feature.geometry;
-
+      // Points
       if (geometry.type == 'Point') {
         final coords = geometry.coordinates as List<dynamic>;
-
         final x = (coords[0] as num).toDouble() - minX;
         final y = (coords[1] as num).toDouble() - minY;
-
         final translatedGeometry = Geometry(
           type: geometry.type,
           coordinates: [x, y],
         );
-
         return Feature(
           type: feature.type,
           properties: feature.properties,
           geometry: translatedGeometry,
         );
-      } else if (geometry.type == 'LineString') {
+      }
+      // LineStrings
+      else if (geometry.type == 'LineString') {
         final coordsList = geometry.coordinates as List<dynamic>;
-
         final translatedCoordsList = coordsList.map((coords) {
           final x = (coords[0] as num).toDouble() - minX;
           final y = (coords[1] as num).toDouble() - minY;
           return [x, y];
         }).toList();
-
         final translatedGeometry = Geometry(
           type: geometry.type,
           coordinates: translatedCoordsList,
+        );
+        return Feature(
+          type: feature.type,
+          properties: feature.properties,
+          geometry: translatedGeometry,
+        );
+      }
+      // Stairs: translate both bounds and direction coordinates.
+      else if (feature.properties['objectType'] == 'stairsUp' &&
+          geometry.bounds != null &&
+          geometry.direction != null) {
+        final boundsCoords =
+            (geometry.bounds!.coordinates as List<dynamic>).map((coords) {
+          final x = (coords[0] as num).toDouble() - minX;
+          final y = (coords[1] as num).toDouble() - minY;
+          return [x, y];
+        }).toList();
+
+        final directionCoords =
+            (geometry.direction!.coordinates as List<dynamic>).map((coords) {
+          final x = (coords[0] as num).toDouble() - minX;
+          final y = (coords[1] as num).toDouble() - minY;
+          return [x, y];
+        }).toList();
+
+        final translatedBounds = Geometry(
+          type: geometry.bounds!.type,
+          coordinates: boundsCoords,
+        );
+
+        final translatedDirection = Geometry(
+          type: geometry.direction!.type,
+          coordinates: directionCoords,
+        );
+
+        final translatedGeometry = Geometry(
+          type: 'stairs',
+          coordinates: null,
+          bounds: translatedBounds,
+          direction: translatedDirection,
         );
 
         return Feature(
@@ -95,7 +143,6 @@ class MapModel {
           geometry: translatedGeometry,
         );
       }
-
       return feature;
     }).toList();
   }
@@ -113,7 +160,8 @@ class MapModel {
       final startY = (start[1] as num).toDouble();
       final endX = (end[0] as num).toDouble();
       final endY = (end[1] as num).toDouble();
-      return Wall(startX, startY, endX, endY);
+      final floor = double.parse(feature.properties["floor"] as String);
+      return Wall(startX, startY, endX, endY, floor);
     }).toList();
   }
 
@@ -127,7 +175,8 @@ class MapModel {
       final coordinates = feature.geometry.coordinates as List<dynamic>;
       final x = (coordinates[0] as num).toDouble();
       final y = (coordinates[1] as num).toDouble();
-      return Beacon(name, x, y);
+      final floor = double.parse(feature.properties["floor"] as String);
+      return Beacon(name, x, y, floor);
     }).toList();
   }
 
@@ -138,7 +187,8 @@ class MapModel {
       final coordinates = feature.geometry.coordinates as List<dynamic>;
       final x = (coordinates[0] as num).toDouble();
       final y = (coordinates[1] as num).toDouble();
-      return Door(x, y);
+      final floor = double.parse(feature.properties["floor"] as String);
+      return Door(x, y, floor);
     }).toList();
   }
 
@@ -152,7 +202,8 @@ class MapModel {
       final coordinates = feature.geometry.coordinates as List<dynamic>;
       final x = (coordinates[0] as num).toDouble();
       final y = (coordinates[1] as num).toDouble();
-      return PointOfInterest(x, y, description);
+      final floor = double.parse(feature.properties["floor"] as String);
+      return PointOfInterest(x, y, description, floor);
     }).toList();
   }
 
@@ -212,6 +263,7 @@ class MapModel {
   }
 
   static bool _areWallsCollinear(Wall wall1, Wall wall2) {
+    if (wall1.floor != wall2.floor) return false;
     final k1 = (wall1.endY - wall1.startY) / (wall1.endX - wall1.startX);
     final k2 = (wall2.endY - wall2.startY) / (wall2.endX - wall2.startX);
     return k1 == k2;
@@ -240,25 +292,25 @@ class MapModel {
           ];
 
           if (pointsEqual(wi[1], wj[0])) {
-            normalizedWalls.add(Wall(wi[0].x, wi[0].y, wj[1].x, wj[1].y));
+            normalizedWalls.add(Wall(wi[0].x, wi[0].y, wj[1].x, wj[1].y, wallsToNormalize[i].floor));
             wallsToNormalize.removeAt(i);
             wallsToNormalize.removeAt(j - 1);
             mergedSomething = true;
             break;
           } else if (pointsEqual(wi[0], wj[1])) {
-            normalizedWalls.add(Wall(wj[0].x, wj[0].y, wi[1].x, wi[1].y));
+            normalizedWalls.add(Wall(wj[0].x, wj[0].y, wi[1].x, wi[1].y, wallsToNormalize[i].floor));
             wallsToNormalize.removeAt(i);
             wallsToNormalize.removeAt(j - 1);
             mergedSomething = true;
             break;
           } else if (pointsEqual(wi[0], wj[0])) {
-            normalizedWalls.add(Wall(wi[1].x, wi[1].y, wj[1].x, wj[1].y));
+            normalizedWalls.add(Wall(wi[1].x, wi[1].y, wj[1].x, wj[1].y, wallsToNormalize[i].floor));
             wallsToNormalize.removeAt(i);
             wallsToNormalize.removeAt(j - 1);
             mergedSomething = true;
             break;
           } else if (pointsEqual(wi[1], wj[1])) {
-            normalizedWalls.add(Wall(wi[0].x, wi[0].y, wj[0].x, wj[0].y));
+            normalizedWalls.add(Wall(wi[0].x, wi[0].y, wj[0].x, wj[0].y, wallsToNormalize[i].floor));
             wallsToNormalize.removeAt(i);
             wallsToNormalize.removeAt(j - 1);
             mergedSomething = true;
@@ -325,13 +377,26 @@ class Feature {
 class Geometry {
   final String type;
   final dynamic coordinates;
+  final Geometry? bounds;
+  final Geometry? direction;
 
   Geometry({
     required this.type,
     required this.coordinates,
+    this.bounds,
+    this.direction,
   });
 
   factory Geometry.fromJson(Map<String, dynamic> json) {
+    // If this is a stairs geometry, parse its extra fields.
+    if (json.containsKey('bounds') && json.containsKey('direction')) {
+      return Geometry(
+        type: 'stairs', // you might want to distinguish stairs here
+        coordinates: null,
+        bounds: Geometry.fromJson(json['bounds'] as Map<String, dynamic>),
+        direction: Geometry.fromJson(json['direction'] as Map<String, dynamic>),
+      );
+    }
     return Geometry(
       type: json['type'] as String,
       coordinates: json['coordinates'],
