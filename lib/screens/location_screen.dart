@@ -52,7 +52,6 @@ class _LocationScreenState extends State<LocationScreen> {
 
   _LocationScreenState() {
     _scanner = BeaconScanner(_mapService);
-    // _mapService.fetchMap("LOTS_of_rooms"); // или еще можно "LOTS_of_rooms"
   }
 
   void _startScanning() async {
@@ -76,23 +75,23 @@ class _LocationScreenState extends State<LocationScreen> {
       _filter.predict();
       _filter.update(measurement);
       setState(() {
-        _position = vm.Vector2(_filter.state.x, _filter.state.y);
+        if (_filter.state.x.isNaN || _filter.state.isNaN) {
+          _position = measurement;
+        } else {
+          _position = measurement;
+        }
         _prevFloor = _currentFloor;
         _currentFloor = beacons[0].beacon.floor;
         if (_currentFloor != _prevFloor) {
-          // Recompute he navigation path using the current floor.
           final currentMap = _mapService.currentMap;
           if (currentMap != null && destination != null) {
             final navGraph = currentMap.navGraph;
-            // Get the nodes for the new floor.
             final floorNodes = navGraph.floors[_currentFloor]?.nodes;
             if (floorNodes != null && floorNodes.isNotEmpty) {
-              // Find the nearest visible node from the user's position.
               floorNodes.sort((a, b) =>
                   (a.position - _position).length.compareTo((b.position - _position).length));
               final nearestNode = floorNodes.first;
               
-              // If the destination is on a different floor, find the nearest stairs node.
               NavNode target = destination!;
               if (_currentFloor != destination!.floor) {
                 for (final node in floorNodes) {
@@ -103,7 +102,6 @@ class _LocationScreenState extends State<LocationScreen> {
                 }
               }
               
-              // Compute the new path using your navGraph.
               final newPath = navGraph.findPath(nearestNode, target, _currentFloor);
               setState(() {
                 _currentPath = newPath.isNotEmpty ? newPath : [target];

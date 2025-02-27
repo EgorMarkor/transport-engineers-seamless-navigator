@@ -373,7 +373,7 @@ class MapModel {
 
     final bounds = _getBounds(walls);
     final navGraph = NavigationGraph.build(walls, doors, stairs, pointsOfInterest);
-    print("interesting nodes: ${navGraph.interestingNodes}");
+    ;
 
     return MapModel(
       type: json['type'] as String,

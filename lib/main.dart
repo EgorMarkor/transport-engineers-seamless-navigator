@@ -6,9 +6,13 @@ import 'screens/location_screen.dart';
 
 Future<void> main() async {
   await dotenv.load(fileName: ".env");
-  runApp(IndoorNavigationApp());
+  try {
+    runApp(IndoorNavigationApp());
+  } catch (e) {
+    runApp(IndoorNavigationApp());
+  }
 }
-
+ 
 class IndoorNavigationApp extends StatefulWidget {
   final OpenRouteService client = OpenRouteService(
     apiKey: dotenv.env["ORS_API_KEY"]!,

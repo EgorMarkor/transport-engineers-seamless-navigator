@@ -29,10 +29,16 @@ class LocationPainter extends CustomPainter {
 
   void _drawUser(Canvas canvas, Size size, GridUtils gridUtils) {
     final scaledGridSize = gridUtils.getScaledGridSize();
-    final userPos = Offset(
-      position.x * scaledGridSize + offset.dx,
-      position.y * scaledGridSize + offset.dy,
-    );
+    print("userx: ${position.x}; usery: ${position.y}");
+    Offset userPos;
+    if (position.x.isNaN || position.y.isNaN) {
+      userPos = Offset.zero;
+    } else {
+      userPos = Offset(
+        position.x * scaledGridSize + offset.dx,
+        position.y * scaledGridSize + offset.dy,
+      );
+    }
     canvas.drawCircle(
       userPos,
       20,
@@ -318,7 +324,7 @@ class LocationPainter extends CustomPainter {
       canvas: canvas,
       size: size,
       scale: scale,
-    );
+    );  
     _drawUser(canvas, size, gridUtils);
     _drawGrid(canvas, size, gridUtils);
     _drawBeacons(canvas, size, gridUtils);

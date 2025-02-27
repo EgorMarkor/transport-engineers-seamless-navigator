@@ -96,7 +96,7 @@ class _NavigationPathWidgetState extends State<NavigationPathWidget> {
       navGraph.floors[widget.floor]!.nodes,
     );
 
-    print("visible $visibleNodes");
+    ;
 
     List<List<NavNode>> paths = visibleNodes.map((node) {
       localDestionation = destination!;
@@ -104,12 +104,10 @@ class _NavigationPathWidgetState extends State<NavigationPathWidget> {
         final nearestStairs = _findNearestStairs(node, navGraph.floors[widget.floor]!);
         if (nearestStairs != null) localDestionation = nearestStairs;
       }
-      print("dest: ${localDestionation!.position}");
+      ;
       return navGraph.findPath(node, localDestionation!, widget.floor);
     }).toList();
     paths.sort((a, b) => a.length.compareTo(b.length));
-
-    print("paths: ${paths.first}");
 
     if (paths.isEmpty) {
       setState(() {
@@ -119,7 +117,6 @@ class _NavigationPathWidgetState extends State<NavigationPathWidget> {
     }
 
     final computedPath = paths.first;
-    print("computed path: $computedPath");
     if (computedPath.isEmpty) computedPath.add(localDestionation!);
     setState(() {
       _path = computedPath;

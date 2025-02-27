@@ -15,7 +15,7 @@ class NavigationGraph {
   });
 
   List<NavNode> findPath(NavNode start, NavNode end, double floor) {
-    print("start: ${start.position}; end: ${end.position}");
+    ;
     if (start == end) return [start];
 
     final openSet = SplayTreeSet<_NodeFScore>((a, b) {
