@@ -34,7 +34,7 @@ class BeaconScanner {
           continue;
         }
 
-        final txPower = result.advertisementData.txPowerLevel ?? -59;
+        final txPower = result.advertisementData.txPowerLevel ?? -61;
         final distance = _calculateDistance(result.rssi, txPower);
 
         beacons.add(BeaconRssi(

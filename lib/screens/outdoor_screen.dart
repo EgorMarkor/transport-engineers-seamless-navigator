@@ -86,18 +86,11 @@ class _OutdoorScreenState extends State<OutdoorScreen> {
         Geolocator.getPositionStream(locationSettings: geolocationSettings)
             .listen((Position newPosition) {
       final newLatLng = LatLng(newPosition.latitude, newPosition.longitude);
-      if (_userLocation == null ||
-          Geolocator.distanceBetween(
-                _userLocation!.latitude,
-                _userLocation!.longitude,
-                newLatLng.latitude,
-                newLatLng.longitude,
-              ) >=
-              50) {
+      setState(() {
         _userLocation = newLatLng;
-        if (_destination != null) {
-          _fetchRoute(_userLocation!, _destination!);
-        }
+      });
+      if (_destination != null) {
+        _fetchRoute(newLatLng, _destination!);
       }
     });
   }
@@ -234,7 +227,7 @@ class _OutdoorScreenState extends State<OutdoorScreen> {
                         borderStrokeWidth: 2,
                         borderColor: Colors.blue,
                         useRadiusInMeter: true,
-                        radius: 50,
+                        radius: 5,
                       ),
                     ],
                   ),

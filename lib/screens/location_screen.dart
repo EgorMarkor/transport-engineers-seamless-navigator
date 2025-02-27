@@ -36,12 +36,19 @@ class _LocationScreenState extends State<LocationScreen> {
 
   vm.Vector2 _position = vm.Vector2.zero();
   double _currentFloor = 0;
+  double _prevFloor = 0;
 
   Offset _dragOffset = Offset.zero;
   double _currentScale = 1.0;
   double _initialScale = 1.0;
 
   List<BeaconRssi> _detectedBeacons = [];
+
+  NavNode? destination;
+
+  void setDestination(NavNode destination) {
+    destination = destination;
+  }
 
   _LocationScreenState() {
     _scanner = BeaconScanner(_mapService);
@@ -70,7 +77,40 @@ class _LocationScreenState extends State<LocationScreen> {
       _filter.update(measurement);
       setState(() {
         _position = vm.Vector2(_filter.state.x, _filter.state.y);
+        _prevFloor = _currentFloor;
         _currentFloor = beacons[0].beacon.floor;
+        if (_currentFloor != _prevFloor) {
+          // Recompute he navigation path using the current floor.
+          final currentMap = _mapService.currentMap;
+          if (currentMap != null && destination != null) {
+            final navGraph = currentMap.navGraph;
+            // Get the nodes for the new floor.
+            final floorNodes = navGraph.floors[_currentFloor]?.nodes;
+            if (floorNodes != null && floorNodes.isNotEmpty) {
+              // Find the nearest visible node from the user's position.
+              floorNodes.sort((a, b) =>
+                  (a.position - _position).length.compareTo((b.position - _position).length));
+              final nearestNode = floorNodes.first;
+              
+              // If the destination is on a different floor, find the nearest stairs node.
+              NavNode target = destination!;
+              if (_currentFloor != destination!.floor) {
+                for (final node in floorNodes) {
+                  if (node.isStairs && node != nearestNode) {
+                    target = node;
+                    break;
+                  }
+                }
+              }
+              
+              // Compute the new path using your navGraph.
+              final newPath = navGraph.findPath(nearestNode, target, _currentFloor);
+              setState(() {
+                _currentPath = newPath.isNotEmpty ? newPath : [target];
+              });
+            }
+          }
+        }
       });
     });
   }
@@ -156,9 +196,11 @@ class _LocationScreenState extends State<LocationScreen> {
           NavigationPathWidget(
             mapService: _mapService,
             userPosition: _position,
+            floor: _currentFloor,
             onPathUpdated: _updateNavigationPath,
+            setDestination: setDestination,
           ),
-          DebugPanelWidget(detectedBeacons: _detectedBeacons, floor: _currentFloor),
+          //DebugPanelWidget(detectedBeacons: _detectedBeacons, floor: _currentFloor),
           Expanded(
             child: Center(
               child: GestureDetector(

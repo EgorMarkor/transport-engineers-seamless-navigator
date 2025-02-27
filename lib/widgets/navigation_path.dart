@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:seamless_navigation/models/map_objects.dart';
 import 'package:seamless_navigation/utils/geometry_utils.dart';
 import 'package:vector_math/vector_math.dart' as vm;
@@ -10,12 +11,16 @@ import '../models/navigation_graph.dart';
 class NavigationPathWidget extends StatefulWidget {
   final MapService mapService;
   final vm.Vector2 userPosition;
+  final double floor;
   final Function(List<NavNode>)? onPathUpdated;
+  final Function(NavNode) setDestination;
 
   const NavigationPathWidget({
     super.key,
     required this.mapService,
     required this.userPosition,
+    required this.floor,
+    required this.setDestination,
     this.onPathUpdated,
   });
 
@@ -25,40 +30,58 @@ class NavigationPathWidget extends StatefulWidget {
 
 class _NavigationPathWidgetState extends State<NavigationPathWidget> {
   NavNode? destination;
+  NavNode? localDestionation;
   List<NavNode> _path = [];
 
-  List<NavNode> _findVisibleNodes(
-    vm.Vector2 position,
-    List<NavNode> nodes,
-    List<Wall> walls,
-  ) {
-    if (nodes.isEmpty) return [];
+  // List<NavNode> _findVisibleNodes(
+  //   vm.Vector2 position,
+  //   double floor,
+  //   List<NavNode> nodes,
+  //   List<Wall> walls,
+  // ) {
+  //   if (nodes.isEmpty) return [];
 
-    List<NavNode> visibleNodes = [];
+  //   List<NavNode> visibleNodes = [];
 
-    for (final node in nodes) {
-      bool isPathClear = true;
+  //   for (final node in nodes) {
+  //     bool isPathClear = floor == node.floor;
 
-      final lineSegment1 = LineSegment(position, node.position);
+  //     if (!isPathClear) continue;
 
-      for (final wall in walls) {
-        final lineSegment2 = LineSegment(
-          vm.Vector2(wall.startX, wall.startY),
-          vm.Vector2(wall.endX, wall.endY),
-        );
+  //     final lineSegment1 = LineSegment(position, node.position);
 
-        if (doLinesIntersect(lineSegment1, lineSegment2)) {
-          isPathClear = false;
-          break;
-        }
-      }
+  //     for (final wall in walls) {
+  //       final lineSegment2 = LineSegment(
+  //         vm.Vector2(wall.startX, wall.startY),
+  //         vm.Vector2(wall.endX, wall.endY),
+  //       );
 
-      if (isPathClear) {
-        visibleNodes.add(node);
-      }
+  //       if (doLinesIntersect(lineSegment1, lineSegment2)) {
+  //         isPathClear = false;
+  //         break;
+  //       }
+  //     }
+
+  //     if (isPathClear) {
+  //       visibleNodes.add(node);
+  //     }
+  //   }
+
+  //   return visibleNodes;
+  // }
+
+  List<NavNode> _findNearestNode(vm.Vector2 userPosition, List<NavNode> nodes) {
+    nodes.sort((a, b) {
+      return (a.position - userPosition).length.compareTo((b.position - userPosition).length);
+    });
+    return [nodes.first];
+  }
+
+  NavNode? _findNearestStairs(NavNode startNode, NavGraphFloor floor) {
+    for (final node in floor.nodes) {
+      if (node != startNode && node.isStairs) return node;
     }
-
-    return visibleNodes;
+    return null;
   }
 
   void _computePath() {
@@ -68,16 +91,25 @@ class _NavigationPathWidgetState extends State<NavigationPathWidget> {
 
     final navGraph = currentMap.navGraph;
 
-    final visibleNodes = _findVisibleNodes(
+    final visibleNodes = _findNearestNode(
       widget.userPosition,
-      navGraph.nodes,
-      currentMap.walls,
+      navGraph.floors[widget.floor]!.nodes,
     );
 
+    print("visible $visibleNodes");
+
     List<List<NavNode>> paths = visibleNodes.map((node) {
-      return navGraph.findPath(node, destination!);
+      localDestionation = destination!;
+      if (widget.floor != destination!.floor) {
+        final nearestStairs = _findNearestStairs(node, navGraph.floors[widget.floor]!);
+        if (nearestStairs != null) localDestionation = nearestStairs;
+      }
+      print("dest: ${localDestionation!.position}");
+      return navGraph.findPath(node, localDestionation!, widget.floor);
     }).toList();
     paths.sort((a, b) => a.length.compareTo(b.length));
+
+    print("paths: ${paths.first}");
 
     if (paths.isEmpty) {
       setState(() {
@@ -87,6 +119,8 @@ class _NavigationPathWidgetState extends State<NavigationPathWidget> {
     }
 
     final computedPath = paths.first;
+    print("computed path: $computedPath");
+    if (computedPath.isEmpty) computedPath.add(localDestionation!);
     setState(() {
       _path = computedPath;
     });
@@ -180,6 +214,7 @@ class _NavigationPathWidgetState extends State<NavigationPathWidget> {
             onChanged: (node) {
               setState(() {
                 destination = node;
+                widget.setDestination(node!);
               });
               _computePath();
             },

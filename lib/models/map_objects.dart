@@ -1,3 +1,5 @@
+import 'package:vector_math/vector_math.dart' as vm;
+
 class Beacon {
   final String name;
   final double x;
@@ -32,4 +34,22 @@ class PointOfInterest {
   final double floor;
 
   const PointOfInterest(this.x, this.y, this.description, this.floor);
+}
+
+class Stairs {
+  final List<vm.Vector2> bounds;
+  final List<vm.Vector2> direction;
+
+  final double startFloor;
+  final double endFloor;
+
+  final bool isUp;
+
+  const Stairs(
+    this.bounds,
+    this.direction,
+    this.startFloor,
+    this.endFloor,
+    this.isUp,
+  );
 }

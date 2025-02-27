@@ -13,6 +13,7 @@ class MapModel {
   final List<Wall> walls;
   final List<Door> doors;
   final List<PointOfInterest> pointsOfInterest;
+  final List<Stairs> stairs;
 
   late List<LineSegment> bounds;
   late NavigationGraph navGraph;
@@ -25,6 +26,7 @@ class MapModel {
     required this.beacons,
     required this.pointsOfInterest,
     required this.doors,
+    required this.stairs,
     required this.bounds,
     required this.navGraph,
   });
@@ -165,6 +167,33 @@ class MapModel {
     }).toList();
   }
 
+  static List<Stairs> _getStairs(List<Feature> features) {
+    return features
+        .where((feature) =>
+            feature.properties["objectType"] == "stairsDown" ||
+            feature.properties["objectType"] == "stairsUp")
+        .map((feature) {
+      final List<vm.Vector2> bounds =
+          (feature.geometry.bounds!.coordinates as List)
+              .map<vm.Vector2>((coord) => vm.Vector2(
+                  (coord[0] as num).toDouble(), (coord[1] as num).toDouble()))
+              .toList();
+
+      final List<vm.Vector2> direction =
+          (feature.geometry.direction!.coordinates as List)
+              .map<vm.Vector2>((coord) => vm.Vector2(
+                  (coord[0] as num).toDouble(), (coord[1] as num).toDouble()))
+              .toList();
+
+      final startFloor =
+          double.parse(feature.properties["startFloor"] as String);
+      final endFloor = double.parse(feature.properties["endFloor"] as String);
+      final isUp = feature.properties["objectType"] == "stairsUp";
+
+      return Stairs(bounds, direction, startFloor, endFloor, isUp);
+    }).toList();
+  }
+
   static List<Beacon> _getBeacons(List<Feature> features) {
     return features
         .where((feature) =>
@@ -292,25 +321,29 @@ class MapModel {
           ];
 
           if (pointsEqual(wi[1], wj[0])) {
-            normalizedWalls.add(Wall(wi[0].x, wi[0].y, wj[1].x, wj[1].y, wallsToNormalize[i].floor));
+            normalizedWalls.add(Wall(
+                wi[0].x, wi[0].y, wj[1].x, wj[1].y, wallsToNormalize[i].floor));
             wallsToNormalize.removeAt(i);
             wallsToNormalize.removeAt(j - 1);
             mergedSomething = true;
             break;
           } else if (pointsEqual(wi[0], wj[1])) {
-            normalizedWalls.add(Wall(wj[0].x, wj[0].y, wi[1].x, wi[1].y, wallsToNormalize[i].floor));
+            normalizedWalls.add(Wall(
+                wj[0].x, wj[0].y, wi[1].x, wi[1].y, wallsToNormalize[i].floor));
             wallsToNormalize.removeAt(i);
             wallsToNormalize.removeAt(j - 1);
             mergedSomething = true;
             break;
           } else if (pointsEqual(wi[0], wj[0])) {
-            normalizedWalls.add(Wall(wi[1].x, wi[1].y, wj[1].x, wj[1].y, wallsToNormalize[i].floor));
+            normalizedWalls.add(Wall(
+                wi[1].x, wi[1].y, wj[1].x, wj[1].y, wallsToNormalize[i].floor));
             wallsToNormalize.removeAt(i);
             wallsToNormalize.removeAt(j - 1);
             mergedSomething = true;
             break;
           } else if (pointsEqual(wi[1], wj[1])) {
-            normalizedWalls.add(Wall(wi[0].x, wi[0].y, wj[0].x, wj[0].y, wallsToNormalize[i].floor));
+            normalizedWalls.add(Wall(
+                wi[0].x, wi[0].y, wj[0].x, wj[0].y, wallsToNormalize[i].floor));
             wallsToNormalize.removeAt(i);
             wallsToNormalize.removeAt(j - 1);
             mergedSomething = true;
@@ -336,9 +369,11 @@ class MapModel {
     final beacons = _getBeacons(translatedFeatures);
     final doors = _getDoors(translatedFeatures);
     final pointsOfInterest = _getPointsOfInterest(translatedFeatures);
+    final stairs = _getStairs(translatedFeatures);
 
     final bounds = _getBounds(walls);
-    final navGraph = NavigationGraph.build(walls, doors, pointsOfInterest);
+    final navGraph = NavigationGraph.build(walls, doors, stairs, pointsOfInterest);
+    print("interesting nodes: ${navGraph.interestingNodes}");
 
     return MapModel(
       type: json['type'] as String,
@@ -348,6 +383,7 @@ class MapModel {
       beacons: beacons,
       bounds: bounds,
       doors: doors,
+      stairs: stairs,
       pointsOfInterest: pointsOfInterest,
       navGraph: navGraph,
     );
